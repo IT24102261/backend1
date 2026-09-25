@@ -1,122 +1,165 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fixflow_mobile/core/app_theme.dart';
+import 'package:fixflow_mobile/models/models.dart';
+import 'package:fixflow_mobile/routes/app_router.dart';
+import 'package:fixflow_mobile/screens/auth/landing_home_screen.dart';
+import 'package:fixflow_mobile/screens/auth/login_screen.dart';
+import 'package:fixflow_mobile/screens/auth/register_screen.dart';
+import 'package:fixflow_mobile/screens/auth/splash_screen.dart';
+import 'package:fixflow_mobile/screens/auth/unauthorized_screen.dart';
+import 'package:fixflow_mobile/screens/customer/booking_detail_screen.dart';
+import 'package:fixflow_mobile/screens/customer/bookings_screen.dart';
+import 'package:fixflow_mobile/screens/customer/confirm_booking_screen.dart';
+import 'package:fixflow_mobile/screens/customer/create_request_screen.dart';
+import 'package:fixflow_mobile/screens/customer/customer_home_screen.dart';
+import 'package:fixflow_mobile/screens/customer/notifications_screen.dart';
+import 'package:fixflow_mobile/screens/customer/quote_compare_screen.dart';
+import 'package:fixflow_mobile/screens/customer/request_detail_screen.dart';
+import 'package:fixflow_mobile/screens/customer/request_history_screen.dart';
+import 'package:fixflow_mobile/screens/customer/review_screen.dart';
+import 'package:fixflow_mobile/screens/technician/create_quote_screen.dart';
+import 'package:fixflow_mobile/screens/technician/technician_home_screen.dart';
+import 'package:fixflow_mobile/screens/technician/technician_invitations_screen.dart';
+import 'package:fixflow_mobile/screens/technician/technician_jobs_screen.dart';
+import 'package:fixflow_mobile/screens/technician/technician_profile_screen.dart';
+import 'package:fixflow_mobile/screens/technician/technician_reviews_screen.dart';
+import 'package:fixflow_mobile/screens/technician/technician_verification_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: FixFlowApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FixFlowApp extends StatelessWidget {
+  const FixFlowApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FixFlow',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'FixFlow'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      title: 'FixFlow AI',
+      theme: AppTheme.light(),
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: (settings) {
+        final args = settings.arguments;
+        switch (settings.name) {
+          case AppRoutes.splash:
+            return MaterialPageRoute(builder: (_) => const SplashScreen());
+          case AppRoutes.home:
+            return MaterialPageRoute(builder: (_) => const LandingHomeScreen());
+          case AppRoutes.login:
+            return MaterialPageRoute(builder: (_) => const LoginScreen());
+          case AppRoutes.register:
+            return MaterialPageRoute(
+              builder: (_) => RegisterScreen(initialRole: args is String ? args : null),
+            );
+          case AppRoutes.unauthorized:
+            return MaterialPageRoute(builder: (_) => const UnauthorizedScreen());
+          case AppRoutes.customerHome:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.customerRoles, child: CustomerHomeScreen()),
+            );
+          case AppRoutes.createRequest:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.customerRoles, child: CreateRequestScreen()),
+            );
+          case AppRoutes.requestHistory:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.customerRoles, child: RequestHistoryScreen()),
+            );
+          case AppRoutes.requestDetail:
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.customerRoles,
+                child: RequestDetailScreen(requestId: args as String),
+              ),
+            );
+          case AppRoutes.quotes:
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.customerRoles,
+                child: QuoteCompareScreen(request: args as ServiceRequest),
+              ),
+            );
+          case AppRoutes.confirmBooking:
+            final data = args as Map;
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.customerRoles,
+                child: ConfirmBookingScreen(
+                  request: data['request'] as ServiceRequest,
+                  quote: data['quote'] as Quote,
+                ),
+              ),
+            );
+          case AppRoutes.bookings:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.customerRoles, child: BookingsScreen()),
+            );
+          case AppRoutes.bookingDetail:
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.customerRoles,
+                child: BookingDetailScreen(bookingId: args as String),
+              ),
+            );
+          case AppRoutes.review:
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.customerRoles,
+                child: ReviewScreen(booking: args as Booking),
+              ),
+            );
+          case AppRoutes.notifications:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.customerRoles, child: NotificationsScreen()),
+            );
+          case AppRoutes.technicianHome:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: TechnicianHomeScreen()),
+            );
+          case AppRoutes.technicianProfile:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: TechnicianProfileScreen()),
+            );
+          case AppRoutes.technicianVerification:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: TechnicianVerificationScreen()),
+            );
+          case AppRoutes.technicianInvitations:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: TechnicianInvitationsScreen()),
+            );
+          case AppRoutes.technicianQuote:
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.technicianRoles,
+                child: CreateQuoteScreen(invitation: args as Invitation),
+              ),
+            );
+          case AppRoutes.technicianJobs:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: TechnicianJobsScreen()),
+            );
+          case AppRoutes.technicianJobDetail:
+            return MaterialPageRoute(
+              builder: (_) => RoleGuard(
+                roles: AppRoutes.technicianRoles,
+                child: TechnicianJobDetailScreen(bookingId: args as String),
+              ),
+            );
+          case AppRoutes.technicianReviews:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: TechnicianReviewsScreen()),
+            );
+          case AppRoutes.technicianNotifications:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: NotificationsScreen()),
+            );
+          default:
+            return MaterialPageRoute(builder: (_) => const SplashScreen());
+        }
+      },
     );
   }
 }

@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>FixFlow uses your location to attach a job address.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>FixFlow uses the camera to attach job photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FixFlow uses your photo library to attach job photos.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

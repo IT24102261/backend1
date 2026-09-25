@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FixFlow.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
 public class HealthController : ControllerBase
 {
-    [HttpGet]
+    [AllowAnonymous]
+    [HttpGet("/health")]
+    [HttpGet("/api/health")]
     public IActionResult Get() => Ok(new { status = "healthy", service = "FixFlow.Api" });
 }

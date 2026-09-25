@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+appsettings.Local.json
+**/appsettings.Local.json
 
 # .NET
 bin/

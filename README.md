@@ -1,79 +1,67 @@
-# FixFlow
+# FixFlow AI
 
-AI-assisted repair and workflow platform with a .NET API, React web client, and Flutter mobile app.
+Intelligent Home Service Management Platform.
 
-## Repository layout
+## Tech stack
 
-```
-FixFlow/
-├── backend/
-│   ├── FixFlow.Api/            # HTTP API, middleware, configuration
-│   ├── FixFlow.Application/    # DTOs, services, validators, agents
-│   ├── FixFlow.Domain/         # Entities, enums, constants, rules
-│   ├── FixFlow.Infrastructure/ # Persistence, auth, storage, integrations
-│   └── FixFlow.Tests/          # Unit, integration, security, agent tests
-├── web/                        # React + TypeScript (Vite)
-├── mobile/                     # Flutter client
-├── docs/                       # Requirements, architecture, ADRs, API notes
-├── .github/workflows/ci.yml
-├── docker-compose.yml
-├── .env.example
-└── FixFlow.sln
-```
+| Area | Technologies |
+| --- | --- |
+| Web | React, TypeScript, Vite, React Router, Axios, Context API, Zustand, Tailwind CSS, Lucide React |
+| Mobile | Flutter, Dart, Riverpod, Dio, flutter_secure_storage, image_picker, geolocator |
+| Backend | C#, ASP.NET Core Web API, .NET 8, EF Core, Npgsql, JWT, FluentValidation, Swagger |
+| Database | PostgreSQL, pgAdmin 4, database name `FixFlow` |
+| Agents | .NET orchestration, LLM adapter, structured JSON, tool calling, human approval |
+| Testing | xUnit, Moq, React Testing Library, Vitest, Flutter Test |
+| Source control | Git, GitHub, GitHub Actions |
 
-## Prerequisites
+## Local database
 
-- .NET 8 SDK
-- Node.js 22+
-- Flutter 3.x
-- Docker (optional, for local Postgres and containers)
+Create a PostgreSQL database named `FixFlow` in pgAdmin 4.
 
-## Getting started
+- Host: `localhost`
+- Port: `5432`
+- Username: `postgres`
+- Put the password only in `.env` and `backend/FixFlow.Api/appsettings.Local.json` (both are gitignored)
 
-1. Copy environment values:
+Production should use environment variables or .NET user secrets:
 
-```bash
-cp .env.example .env
+```powershell
+dotnet user-secrets init --project backend/FixFlow.Api
+dotnet user-secrets set "ConnectionStrings:Default" "Host=...;Database=FixFlow;Username=...;Password=..." --project backend/FixFlow.Api
 ```
 
-2. Run the API:
+Apply the schema:
 
-```bash
+```powershell
+dotnet ef database update --project backend/FixFlow.Infrastructure --startup-project backend/FixFlow.Api --context FixFlowDbContext
+```
+
+## Run
+
+```powershell
 dotnet run --project backend/FixFlow.Api
 ```
 
-3. Run the web client:
+Swagger: `http://localhost:5080/swagger`
 
-```bash
+```powershell
 cd web
 npm install
 npm run dev
 ```
 
-4. Run the mobile app:
-
-```bash
+```powershell
 cd mobile
+flutter pub get
 flutter run
 ```
 
-5. Or start backing services with Docker:
+Demo login: `admin@fixflow.local` / `Admin123!`
 
-```bash
-docker compose up postgres
+## Tests
+
+```powershell
+dotnet test FixFlow.sln
+cd web; npm test
+cd mobile; flutter test
 ```
-
-## Health check
-
-`GET /api/health` returns API status once the backend is running.
-
-## Documentation
-
-Product and engineering notes live under `docs/`:
-
-- `docs/requirements/`
-- `docs/architecture/`
-- `docs/adr/`
-- `docs/api/`
-- `docs/testing/`
-- `docs/ai-usage/`
