@@ -1,0 +1,11 @@
+{
+  "name": "FixFlow AI",
+  "short_name": "FixFlow",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/apple-touch-icon.png", "type": "image/png", "sizes": "180x180" }
+  ],
+  "theme_color": "#171717",
+  "background_color": "#faf7f1",
+  "display": "standalone"
+}
