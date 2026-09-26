@@ -46,9 +46,10 @@ if (!app.Environment.IsEnvironment("Testing"))
         throw;
     }
 
+    await scope.ServiceProvider.GetRequiredService<JaffnaTechnicianSeeder>().SeedAsync();
+
     if (app.Environment.IsDevelopment())
     {
-        await scope.ServiceProvider.GetRequiredService<JaffnaTechnicianSeeder>().SeedAsync();
         await scope.ServiceProvider.GetRequiredService<NegomboElectricianSeeder>().SeedAsync();
         await scope.ServiceProvider.GetRequiredService<JaffnaRequestSeeder>().SeedAsync();
         await scope.ServiceProvider.GetRequiredService<TechnicianRatingSeeder>().SeedAsync();
