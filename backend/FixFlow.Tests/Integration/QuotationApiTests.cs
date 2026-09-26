@@ -209,6 +209,58 @@ public class QuotationApiTests(FixFlowApiFixture fixture)
     }
 
     [Fact]
+    public async Task Create_SecondInvitedTechnician_CanQuoteAfterFirstQuote()
+    {
+        var scenario = await MarketplaceScenario.CreateAsync(fixture);
+        var other = await fixture.RegisterAsync("TECHNICIAN", displayName: "Second Technician");
+        using var otherClient = fixture.CreateClient(other.AccessToken);
+        await otherClient.PutAsJsonAsync("/api/technicians/profile", new { serviceArea = "Colombo" }, FixFlowApiFixture.Json);
+        var apply = await otherClient.PostAsJsonAsync("/api/technician-applications", new
+        {
+            categoryId = ServiceCategorySeed.Electrician
+        }, FixFlowApiFixture.Json);
+        apply.EnsureSuccessStatusCode();
+        var application = await apply.Content.ReadFromJsonAsync<FixFlow.Application.DTOs.Technicians.TechnicianApplicationDto>(FixFlowApiFixture.Json);
+        using var admin = fixture.CreateClient(scenario.Admin.AccessToken);
+        (await admin.PostAsJsonAsync(
+            $"/api/admin/technician-applications/{application!.Id}/approve",
+            new { notes = "Verified" },
+            FixFlowApiFixture.Json)).EnsureSuccessStatusCode();
+
+        Guid invitationId = Guid.Empty;
+        await fixture.ScopeAsync(async services =>
+        {
+            var db = services.GetRequiredService<FixFlowDbContext>();
+            var profile = await db.TechnicianProfiles.SingleAsync(x => x.UserId == other.UserId);
+            var invitation = new FixFlow.Domain.Entities.RequestInvitation
+            {
+                RequestId = scenario.RequestId,
+                TechnicianId = profile.Id
+            };
+            db.RequestInvitations.Add(invitation);
+            await db.SaveChangesAsync();
+            invitationId = invitation.Id;
+        });
+
+        var response = await otherClient.PostAsJsonAsync($"/api/invitations/{invitationId}/quote", new
+        {
+            labourAmount = 3500m,
+            materialsAmount = 1000m,
+            travelAmount = 500m,
+            totalAmount = 5000m,
+            currency = "LKR",
+            durationMinutes = 45,
+            expiresAt = DateTimeOffset.UtcNow.AddDays(2)
+        }, FixFlowApiFixture.Json);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var quotes = await fixture.CreateClient(scenario.Customer.AccessToken)
+            .GetFromJsonAsync<QuoteDto[]>($"/api/requests/{scenario.RequestId}/quotes", FixFlowApiFixture.Json);
+        Assert.NotNull(quotes);
+        Assert.Equal(2, quotes.Count(x => x.Status == "SENT"));
+    }
+
+    [Fact]
     public async Task Create_AfterQuoteSelected_IsRejected()
     {
         var scenario = await MarketplaceScenario.CreateAsync(fixture);

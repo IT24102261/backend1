@@ -89,7 +89,7 @@ public class ValidatorAndMarketplaceRuleTests
     {
         Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.Matching));
         Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.CollectingQuotes));
-        Assert.False(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.AwaitingCustomerApproval));
+        Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.AwaitingCustomerApproval));
         Assert.False(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.Booked));
     }
 }

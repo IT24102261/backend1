@@ -8,5 +8,7 @@ public static class ServiceRequestRules
         status is ServiceRequestStatus.AwaitingCustomerApproval or ServiceRequestStatus.Booked;
 
     public static bool AllowsQuotations(ServiceRequestStatus status) =>
-        status is ServiceRequestStatus.Matching or ServiceRequestStatus.CollectingQuotes;
+        status is ServiceRequestStatus.Matching
+            or ServiceRequestStatus.CollectingQuotes
+            or ServiceRequestStatus.AwaitingCustomerApproval;
 }
