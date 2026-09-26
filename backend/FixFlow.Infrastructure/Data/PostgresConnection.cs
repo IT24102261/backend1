@@ -1,4 +1,6 @@
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
 namespace FixFlow.Infrastructure.Data;
 
@@ -16,30 +18,101 @@ public static class PostgresConnection
 
     public static string Normalize(string raw)
     {
-        raw = raw.Trim();
-        if (raw.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
-            || raw.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        raw = raw.Trim().Trim('"', '\'');
+        var uri = Regex.Match(raw, @"postgres(?:ql)?://[^\s;]+", RegexOptions.IgnoreCase);
+        if (uri.Success)
         {
-            var uri = new Uri(raw);
-            var userInfo = uri.UserInfo.Split(':', 2);
-            var user = Uri.UnescapeDataString(userInfo[0]);
-            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty;
-            var database = Uri.UnescapeDataString(uri.AbsolutePath.Trim('/'));
-            var port = uri.IsDefaultPort ? 5432 : uri.Port;
-            raw = $"Host={uri.Host};Port={port};Database={database};Username={user};Password={password}";
+            return FromBuilder(FromUri(uri.Value.TrimEnd('"', '\'')), raw);
         }
 
-        if (NeedsSsl(raw)
-            && raw.IndexOf("SSL Mode", StringComparison.OrdinalIgnoreCase) < 0
-            && raw.IndexOf("Ssl Mode", StringComparison.OrdinalIgnoreCase) < 0)
+        if (raw.IndexOf('=') < 0)
         {
-            raw = raw.TrimEnd(';') + ";SSL Mode=Require;Trust Server Certificate=true";
+            if (LooksLikeHost(raw))
+            {
+                return FromBuilder(new NpgsqlConnectionStringBuilder { Host = raw }, raw);
+            }
+
+            throw new InvalidOperationException(
+                "ConnectionStrings__Default must be the Render Internal Database URL (postgresql://...) or Host=...;Username=...;Password=...;Database=.... Do not paste the word inhost.");
         }
 
-        return raw;
+        raw = Regex.Replace(raw, @"\b(inhost|internalhost|internal host)\s*=", "Host=", RegexOptions.IgnoreCase);
+        raw = Regex.Replace(raw, @"\b(initial catalog)\s*=", "Database=", RegexOptions.IgnoreCase);
+        raw = Regex.Replace(raw, @"\b(user id|uid)\s*=", "Username=", RegexOptions.IgnoreCase);
+
+        var builder = new NpgsqlConnectionStringBuilder();
+        foreach (var part in raw.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var separator = part.IndexOf('=');
+            if (separator <= 0)
+            {
+                continue;
+            }
+
+            var key = part[..separator].Trim();
+            var value = part[(separator + 1)..].Trim().Trim('"', '\'');
+            if (key.Equals("inhost", StringComparison.OrdinalIgnoreCase)
+                || key.Equals("internalhost", StringComparison.OrdinalIgnoreCase)
+                || key.Equals("internal hostname", StringComparison.OrdinalIgnoreCase))
+            {
+                key = "Host";
+            }
+
+            try
+            {
+                builder[key] = value;
+            }
+            catch (ArgumentException)
+            {
+                // Ignore pasted labels Npgsql does not understand, such as "inhost".
+            }
+        }
+
+        return FromBuilder(builder, raw);
     }
 
-    private static bool NeedsSsl(string connectionString) =>
-        connectionString.Contains("render.com", StringComparison.OrdinalIgnoreCase)
-        || connectionString.Contains("dpg-", StringComparison.OrdinalIgnoreCase);
+    private static NpgsqlConnectionStringBuilder FromUri(string url)
+    {
+        var uri = new Uri(url);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Port = uri.IsDefaultPort ? 5432 : uri.Port,
+            Database = Uri.UnescapeDataString(uri.AbsolutePath.Trim('/')),
+            Username = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : string.Empty,
+            Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : string.Empty
+        };
+
+        if (uri.Query.Contains("sslmode=disable", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.SslMode = SslMode.Disable;
+        }
+
+        return builder;
+    }
+
+    private static string FromBuilder(NpgsqlConnectionStringBuilder builder, string original)
+    {
+        if (string.IsNullOrWhiteSpace(builder.Host) || builder.Host.Equals("inhost", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Postgres Host is missing. On Render, paste Internal Database URL into ConnectionStrings__Default (starts with postgresql://).");
+        }
+
+        if (NeedsSsl(builder.Host) || NeedsSsl(original))
+        {
+            builder.SslMode = SslMode.Require;
+        }
+
+        return builder.ConnectionString;
+    }
+
+    private static bool LooksLikeHost(string value) =>
+        value.Contains("dpg-", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("render.com", StringComparison.OrdinalIgnoreCase)
+        || value.Contains('.');
+
+    private static bool NeedsSsl(string value) =>
+        value.Contains("render.com", StringComparison.OrdinalIgnoreCase)
+        || value.Contains("dpg-", StringComparison.OrdinalIgnoreCase);
 }

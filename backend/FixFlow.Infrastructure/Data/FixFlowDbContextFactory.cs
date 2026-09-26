@@ -16,6 +16,8 @@ public class FixFlowDbContextFactory : IDesignTimeDbContextFactory<FixFlowDbCont
             ?? ReadConnectionString(Path.Combine(apiPath, "appsettings.json"))
             ?? "Host=localhost;Port=5432;Database=FixFlow;Username=postgres";
 
+        connectionString = PostgresConnection.Normalize(connectionString);
+
         var options = new DbContextOptionsBuilder<FixFlowDbContext>()
             .UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(5))
             .UseSnakeCaseNamingConvention()
