@@ -63,7 +63,8 @@ export function CustomerRequestsPage() {
   const [budget, setBudget] = useState('')
   const [preferredStart, setPreferredStart] = useState('')
   const [file, setFile] = useState<File | null>(null)
-  const [clarification, setClarification] = useState('')
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [questions, setQuestions] = useState<Record<string, string>>({})
   const [descError, setDescError] = useState('')
   const [areaError, setAreaError] = useState('')
 
@@ -89,6 +90,21 @@ export function CustomerRequestsPage() {
           }),
         )
         setQuotesByRequest(next)
+        const nextQuestions: Record<string, string> = {}
+        await Promise.all(
+          result.items
+            .filter((row) => row.status === 'CLARIFICATION_REQUIRED')
+            .map(async (row) => {
+              try {
+                const history = await requestsApi.history(row.id)
+                const note = [...history].reverse().find((item) => item.toStatus === 'CLARIFICATION_REQUIRED')?.note
+                nextQuestions[row.id] = note?.trim() || 'Please add more detail so matching can continue.'
+              } catch {
+                nextQuestions[row.id] = 'Please add more detail so matching can continue.'
+              }
+            }),
+        )
+        setQuestions(nextQuestions)
         if (!selectedRequestId && result.items[0]) {
           setSelectedRequestId(result.items[0].id)
         }
@@ -145,6 +161,23 @@ export function CustomerRequestsPage() {
     }
   }
 
+  async function sendClarification(requestId: string) {
+    const message = (answers[requestId] ?? '').trim()
+    if (!message) {
+      push('error', 'Type your answer in the box under this request, then send it.')
+      setSelectedRequestId(requestId)
+      return
+    }
+    try {
+      await requestsApi.addClarification(requestId, message)
+      push('success', 'Answer sent. Matching will continue.')
+      setAnswers((current) => ({ ...current, [requestId]: '' }))
+      load()
+    } catch (err) {
+      push('error', getApiError(err).error)
+    }
+  }
+
   const columns: Column<RequestDto>[] = [
     { key: 'categoryName', header: 'Category', render: (row) => row.categoryName || '—' },
     { key: 'description', header: 'Description', render: (row) => row.description },
@@ -174,20 +207,10 @@ export function CustomerRequestsPage() {
           ) : null}
           {row.status === 'CLARIFICATION_REQUIRED' ? (
             <Button
-              variant="ghost"
-              onClick={async () => {
-                if (!clarification.trim()) {
-                  push('error', 'Enter a clarification answer first.')
-                  return
-                }
-                try {
-                  await requestsApi.addClarification(row.id, clarification)
-                  push('success', 'Clarification sent. Matching will resume.')
-                  setClarification('')
-                  load()
-                } catch (err) {
-                  push('error', getApiError(err).error)
-                }
+              variant="secondary"
+              onClick={() => {
+                setSelectedRequestId(row.id)
+                document.getElementById(`request-answer-${row.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
               }}
             >
               Answer
@@ -283,9 +306,6 @@ export function CustomerRequestsPage() {
         <FormField label="Description" error={descError}>
           <TextArea value={description} onChange={(event) => setDescription(event.target.value)} />
         </FormField>
-        <FormField label="Clarification answer">
-          <TextInput value={clarification} onChange={(event) => setClarification(event.target.value)} placeholder="Used when a request needs more detail" />
-        </FormField>
         <Button type="submit">Create draft</Button>
       </form>
       <DataTable
@@ -327,6 +347,22 @@ export function CustomerRequestsPage() {
                   <StatusBadge status={row.status} />
                 </div>
                 <p className="mt-2 text-sm text-[#6d6a64]">{requestHelpText(row.status)}</p>
+                {row.status === 'CLARIFICATION_REQUIRED' ? (
+                  <div id={`request-answer-${row.id}`} className="mt-3 space-y-3 border border-[#e6dccb] bg-[#faf7f1] p-4">
+                    <p className="text-sm font-semibold text-slate-900">We need a little more information</p>
+                    <p className="text-sm text-slate-700">{questions[row.id] || 'Please add more detail so matching can continue.'}</p>
+                    <FormField label="Your answer">
+                      <TextArea
+                        value={answers[row.id] ?? ''}
+                        onChange={(event) => setAnswers((current) => ({ ...current, [row.id]: event.target.value }))}
+                        placeholder="Example: 2 plug switches need replacement. I can send a photo."
+                      />
+                    </FormField>
+                    <Button type="button" onClick={() => void sendClarification(row.id)}>
+                      Send answer
+                    </Button>
+                  </div>
+                ) : null}
                 {quotes.length === 0 ? (
                   <p className="mt-3 text-sm text-slate-500">No quotations yet for this request.</p>
                 ) : (

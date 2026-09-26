@@ -121,7 +121,18 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
                 setState(() => _arrival = DateTime(date.year, date.month, date.day, time.hour, time.minute));
               },
             ),
-            FilledButton(onPressed: _busy ? null : _submit, child: Text(_busy ? 'Submitting…' : 'Submit quote')),
+            if (!widget.invitation.canQuote)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'This job has already been accepted by another technician. Quotations are no longer accepted.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            FilledButton(
+              onPressed: _busy || !widget.invitation.canQuote ? null : _submit,
+              child: Text(_busy ? 'Submitting…' : 'Submit quote'),
+            ),
           ],
         ),
       ),

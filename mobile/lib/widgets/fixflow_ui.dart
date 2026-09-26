@@ -42,11 +42,18 @@ class FixFlowScaffold extends ConsumerWidget {
         titleSpacing: 16,
         title: Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(color: AppColors.ink, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.home_outlined, size: 16, color: Colors.white),
+            InkWell(
+              onTap: () {
+                if (ModalRoute.of(context)?.settings.name == AppRoutes.home) return;
+                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(color: AppColors.ink, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.home_outlined, size: 16, color: Colors.white),
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(

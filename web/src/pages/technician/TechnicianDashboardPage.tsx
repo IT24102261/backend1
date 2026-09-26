@@ -43,7 +43,7 @@ export function TechnicianDashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const openInvites = invitations.filter((item) => item.status === 'SENT')
+  const openInvites = invitations.filter((item) => item.status === 'SENT' && item.canQuote !== false)
   const firstName = user?.displayName?.split(' ')[0]
   const approved = profile?.approvedCategories.length ?? 0
 

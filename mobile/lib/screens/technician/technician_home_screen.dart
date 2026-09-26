@@ -66,7 +66,7 @@ class TechnicianHomeScreen extends ConsumerWidget {
           final applications = snapshot.data![1] as List<TechnicianApplication>;
           final invitations = snapshot.data![2] as List<Invitation>;
           final jobs = snapshot.data![3] as PagedResult<Booking>;
-          final openInvites = invitations.where((item) => item.status == 'SENT').length;
+          final openInvites = invitations.where((item) => item.status == 'SENT' && item.canQuote).length;
           final approved = profile?.approvedCategories.length ?? user.approvedCategories.length;
 
           return ListView(

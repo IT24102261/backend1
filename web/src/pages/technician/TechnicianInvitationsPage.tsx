@@ -66,7 +66,10 @@ export function TechnicianInvitationsPage() {
               <StatusBadge status={item.status} />
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              {item.status === 'SENT' ? (
+              {item.canQuote === false ? (
+                <p className="text-sm font-medium text-[#9a968e]">This job has already been accepted by another technician.</p>
+              ) : null}
+              {item.status === 'SENT' && item.canQuote !== false ? (
                 <>
                   <Button onClick={() => void decide(item.id, 'accept')}>Accept</Button>
                   <Button variant="secondary" onClick={() => void decide(item.id, 'decline')}>
@@ -74,7 +77,7 @@ export function TechnicianInvitationsPage() {
                   </Button>
                 </>
               ) : null}
-              {item.status !== 'DECLINED' ? (
+              {item.canQuote !== false && item.status !== 'DECLINED' ? (
                 <Link
                   to={`/technician/quotations?invitationId=${item.id}`}
                   className="inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-[#c4a574] transition hover:bg-[#f4efe6]"

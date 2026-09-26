@@ -131,6 +131,26 @@ class _QuoteCompareScreenState extends ConsumerState<QuoteCompareScreen> {
                               Text('Duration ${quote.durationMinutes} minutes'),
                               Text('Expires ${formatDate(quote.expiresAt)}'),
                               if (quote.assumptions != null) Text('Assumptions: ${quote.assumptions}'),
+                              if (quote.recommendationSummary != null && quote.recommendationSummary!.trim().isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(quote.recommendationSummary!, style: Theme.of(context).textTheme.bodyMedium),
+                              ],
+                              if (quote.strengths.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    quote.strengths.join(' '),
+                                    style: const TextStyle(color: Color(0xFF047857), fontSize: 12, height: 1.35),
+                                  ),
+                                ),
+                              if (quote.tradeoffs.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    quote.tradeoffs.join(' '),
+                                    style: const TextStyle(color: Color(0xFFB45309), fontSize: 12, height: 1.35),
+                                  ),
+                                ),
                               const SizedBox(height: 12),
                               if (isSelected)
                                 const StatusChip(label: 'SELECTED')

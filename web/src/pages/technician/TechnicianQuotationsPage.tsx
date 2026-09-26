@@ -32,7 +32,7 @@ export function TechnicianQuotationsPage() {
   const [validation, setValidation] = useState('')
 
   const quotable = useMemo(
-    () => invitations.filter((item) => item.status !== 'DECLINED'),
+    () => invitations.filter((item) => item.canQuote !== false && item.status !== 'DECLINED'),
     [invitations],
   )
   const selected = quotable.find((item) => item.id === invitationId)
@@ -44,11 +44,13 @@ export function TechnicianQuotationsPage() {
         const list = Array.isArray(items) ? items : []
         setInvitations(list)
         const preferred = searchParams.get('invitationId')
-        const open = list.filter((item) => item.status !== 'DECLINED')
+        const open = list.filter((item) => item.canQuote !== false && item.status !== 'DECLINED')
         if (preferred && open.some((item) => item.id === preferred)) {
           setInvitationId(preferred)
         } else if (open.length === 1) {
           setInvitationId(open[0].id)
+        } else if (preferred && !open.some((item) => item.id === preferred)) {
+          setInvitationId('')
         }
         const collected: QuoteDto[] = []
         for (const item of list) {

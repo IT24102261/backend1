@@ -83,4 +83,13 @@ public class ValidatorAndMarketplaceRuleTests
         Assert.False(RequestStateMachine.CanTransition(ServiceRequestStatus.Completed, ServiceRequestStatus.Draft));
         Assert.True(RequestStateMachine.CanTransition(ServiceRequestStatus.Draft, ServiceRequestStatus.Submitted));
     }
+
+    [Fact]
+    public void ServiceRequestRules_AllowsQuotationsOnlyWhileCollecting()
+    {
+        Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.Matching));
+        Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.CollectingQuotes));
+        Assert.False(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.AwaitingCustomerApproval));
+        Assert.False(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.Booked));
+    }
 }

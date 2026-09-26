@@ -58,10 +58,19 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   }
 
   Future<void> _sendClarification() async {
-    if (_clarification.text.trim().isEmpty) return;
+    if (_clarification.text.trim().isEmpty) {
+      setState(() => _error = 'Type your answer first, then tap Submit clarification.');
+      return;
+    }
+    setState(() => _error = null);
     try {
       await ref.read(apiProvider).addClarification(widget.requestId, _clarification.text.trim());
       _clarification.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Answer sent. Matching will continue.')),
+        );
+      }
       await _load();
     } catch (error) {
       setState(() => _error = error.toString());
@@ -112,19 +121,26 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                         if (request.status == 'CLARIFICATION_REQUIRED') ...[
                           const SizedBox(height: 12),
                           SectionCard(
-                            title: 'AI clarification',
+                            title: 'We need a little more information',
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ..._history
-                                    .where((item) => item.toStatus == 'CLARIFICATION_REQUIRED' || (item.note ?? '').isNotEmpty)
-                                    .map((item) => Padding(
-                                          padding: const EdgeInsets.only(bottom: 8),
-                                          child: Text(item.note ?? 'Please add more detail so matching can continue.'),
-                                        )),
+                                Text(
+                                  _history
+                                          .where((item) => item.toStatus == 'CLARIFICATION_REQUIRED')
+                                          .map((item) => item.note)
+                                          .whereType<String>()
+                                          .where((note) => note.trim().isNotEmpty)
+                                          .lastOrNull ??
+                                      'Please add more detail so matching can continue.',
+                                ),
+                                const SizedBox(height: 12),
                                 TextField(
                                   controller: _clarification,
-                                  decoration: const InputDecoration(labelText: 'Your answer'),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Your answer',
+                                    hintText: 'Example: 2 plug switches need replacement',
+                                  ),
                                   maxLines: 3,
                                 ),
                                 const SizedBox(height: 8),

@@ -1,5 +1,10 @@
 DateTime? _dt(dynamic value) => value == null ? null : DateTime.tryParse(value.toString());
 
+List<String> _stringList(dynamic value) {
+  if (value is! List) return const [];
+  return value.map((item) => item.toString().trim()).where((item) => item.isNotEmpty).toList();
+}
+
 class PagedResult<T> {
   const PagedResult({
     required this.items,
@@ -200,6 +205,9 @@ class Quote {
     this.distanceBand,
     this.technicianDisplayName,
     this.profilePhotoUrl,
+    this.recommendationSummary,
+    this.strengths = const [],
+    this.tradeoffs = const [],
   });
 
   final String id;
@@ -221,6 +229,9 @@ class Quote {
   final String? distanceBand;
   final String? technicianDisplayName;
   final String? profilePhotoUrl;
+  final String? recommendationSummary;
+  final List<String> strengths;
+  final List<String> tradeoffs;
 
   factory Quote.fromJson(Map<String, dynamic> json) => Quote(
         id: json['id']?.toString() ?? '',
@@ -242,6 +253,9 @@ class Quote {
         distanceBand: json['distanceBand']?.toString(),
         technicianDisplayName: json['technicianDisplayName']?.toString(),
         profilePhotoUrl: json['profilePhotoUrl']?.toString(),
+        recommendationSummary: json['recommendationSummary']?.toString(),
+        strengths: _stringList(json['strengths']),
+        tradeoffs: _stringList(json['tradeoffs']),
       );
 }
 
@@ -386,6 +400,8 @@ class Invitation {
     required this.description,
     this.serviceArea,
     this.categoryName,
+    this.requestStatus,
+    this.canQuote = true,
   });
 
   final String id;
@@ -395,6 +411,8 @@ class Invitation {
   final String description;
   final String? serviceArea;
   final String? categoryName;
+  final String? requestStatus;
+  final bool canQuote;
 
   factory Invitation.fromJson(Map<String, dynamic> json) => Invitation(
         id: json['id']?.toString() ?? '',
@@ -404,6 +422,8 @@ class Invitation {
         description: json['description']?.toString() ?? '',
         serviceArea: json['serviceArea']?.toString(),
         categoryName: json['categoryName']?.toString(),
+        requestStatus: json['requestStatus']?.toString(),
+        canQuote: json['canQuote'] as bool? ?? true,
       );
 }
 

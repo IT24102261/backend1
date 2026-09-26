@@ -216,8 +216,7 @@ public class RequestService(
 
         if (entity.Status == ServiceRequestStatus.ClarificationRequired && entity.CustomerId == currentUser.UserId)
         {
-            Transition(entity, ServiceRequestStatus.Analyzing, "Customer provided clarification");
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await ChangeStatusAsync(entity, ServiceRequestStatus.Analyzing, "Customer provided clarification", cancellationToken);
             await orchestrator.ResumeAfterClarificationAsync(entity.Id, cancellationToken);
             return;
         }
@@ -264,30 +263,6 @@ public class RequestService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
         await AddHistory(request, from, to, note, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-    }
-
-    private void Transition(ServiceRequest request, ServiceRequestStatus to, string note)
-    {
-        if (request.Status == to)
-        {
-            return;
-        }
-
-        if (!RequestStateMachine.CanTransition(request.Status, to))
-        {
-            throw new ConflictException($"Cannot move request from {EnumMap.ToApi(request.Status)} to {EnumMap.ToApi(to)}.");
-        }
-
-        var from = request.Status;
-        request.Status = to;
-        request.History.Add(new RequestStatusHistory
-        {
-            RequestId = request.Id,
-            ActorId = currentUser.UserId,
-            FromStatus = from,
-            ToStatus = to,
-            Note = note
-        });
     }
 
     private Task AddHistory(ServiceRequest request, ServiceRequestStatus from, ServiceRequestStatus to, string note, CancellationToken cancellationToken) =>

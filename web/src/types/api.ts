@@ -185,6 +185,8 @@ export type InvitationDto = {
   serviceArea?: string | null
   categoryName?: string | null
   description: string
+  requestStatus?: string
+  canQuote?: boolean
 }
 
 export type QuoteDto = {

@@ -14,7 +14,7 @@ import {
   Users,
   House,
 } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 
 const admin = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -59,13 +59,15 @@ export function Sidebar({ variant, onNavigate }: { variant: keyof typeof menus; 
   return (
     <aside className="flex h-full w-64 flex-col bg-[#111318] text-white/70">
       <div className="flex items-center gap-3 px-5 py-7">
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
-          <House size={16} />
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-white">FixFlow AI</p>
-          <p className="mt-1 text-xs capitalize text-[#c4a574]">{variant} workspace</p>
-        </div>
+        <Link to="/" className="flex items-center gap-3" aria-label="FixFlow home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
+            <House size={16} />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-white">FixFlow AI</p>
+            <p className="mt-1 text-xs capitalize text-[#c4a574]">{variant} workspace</p>
+          </div>
+        </Link>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-6">
         {menus[variant].map((item) => {

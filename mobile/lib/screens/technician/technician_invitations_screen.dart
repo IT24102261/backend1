@@ -69,7 +69,15 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
                                     Text(item.description),
                                     Text('Area: ${item.serviceArea ?? 'approximate only'}'),
                                     Text(formatDate(item.sentAt)),
-                                    if (item.status == 'SENT')
+                                    if (!item.canQuote)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          'This job has already been accepted by another technician.',
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF9A968E)),
+                                        ),
+                                      )
+                                    else if (item.status == 'SENT')
                                       Row(
                                         children: [
                                           TextButton(
@@ -87,8 +95,8 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
                                             child: const Text('Decline'),
                                           ),
                                         ],
-                                      ),
-                                    if (item.status == 'ACCEPTED')
+                                      )
+                                    else if (item.status == 'ACCEPTED')
                                       FilledButton(
                                         onPressed: () => Navigator.pushNamed(context, AppRoutes.technicianQuote, arguments: item),
                                         child: const Text('Create quotation'),

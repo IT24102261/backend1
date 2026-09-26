@@ -17,8 +17,7 @@ public static class DependencyInjection
     {
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 
-        var connectionString = configuration.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("Connection string 'Default' is not configured. Use environment variables or user secrets.");
+        var connectionString = PostgresConnection.Resolve(configuration);
 
         services.AddDbContext<FixFlowDbContext>(options =>
             options.UseNpgsql(connectionString, npgsql =>

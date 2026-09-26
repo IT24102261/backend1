@@ -12,11 +12,18 @@ class LandingHomeScreen extends StatelessWidget {
       backgroundColor: AppColors.canvas,
       appBar: AppBar(
         titleSpacing: 16,
-        title: const Row(
+        title: Row(
           children: [
-            BrandMark(size: 32),
-            SizedBox(width: 10),
-            Text('FixFlow AI', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.ink)),
+            InkWell(
+              onTap: () {
+                if (ModalRoute.of(context)?.settings.name == AppRoutes.home) return;
+                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: const BrandMark(size: 32),
+            ),
+            const SizedBox(width: 10),
+            const Text('FixFlow AI', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.ink)),
           ],
         ),
         actions: [

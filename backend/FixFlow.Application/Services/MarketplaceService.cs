@@ -53,6 +53,7 @@ public class MarketplaceService(
     {
         var invitation = await LoadInvitation(id, cancellationToken);
         var profile = await EnsureInvitationAccess(invitation, cancellationToken);
+        EnsureRequestOpenForQuotes(invitation.Request);
         await EnsureCategoryApproved(profile.Id, invitation.Request.CategoryId, cancellationToken);
         invitation.Status = InvitationStatus.Accepted;
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -73,8 +74,9 @@ public class MarketplaceService(
         ValidateTotals(request);
         var invitation = await LoadInvitation(invitationId, cancellationToken);
         var profile = await EnsureInvitationAccess(invitation, cancellationToken);
+        EnsureRequestOpenForQuotes(invitation.Request);
         await EnsureCategoryApproved(profile.Id, invitation.Request.CategoryId, cancellationToken);
-        if (invitation.Status == InvitationStatus.Declined)
+        if (invitation.Status == InvitationStatus.Declined || invitation.Status == InvitationStatus.Expired)
         {
             throw new ConflictException("Cannot quote a declined invitation.");
         }
@@ -670,6 +672,14 @@ public class MarketplaceService(
         }
     }
 
+    private static void EnsureRequestOpenForQuotes(ServiceRequest request)
+    {
+        if (!ServiceRequestRules.AllowsQuotations(request.Status))
+        {
+            throw new ConflictException("This job has already been accepted by another technician. Quotations are no longer accepted.");
+        }
+    }
+
     private async Task NotifyOtherTechniciansJobTakenAsync(
         Guid requestId,
         Guid bookedTechnicianId,
@@ -787,17 +797,24 @@ public class MarketplaceService(
         dto.DistanceBand = distance.DistanceUnavailable ? null : distance.Band;
     }
 
-    private static InvitationDto MapInvitation(RequestInvitation invitation) => new()
+    private static InvitationDto MapInvitation(RequestInvitation invitation)
     {
-        Id = invitation.Id,
-        RequestId = invitation.RequestId,
-        TechnicianId = invitation.TechnicianId,
-        Status = EnumMap.ToApi(invitation.Status),
-        SentAt = invitation.SentAt,
-        ServiceArea = invitation.Request.ServiceArea,
-        CategoryName = invitation.Request.Category?.Name,
-        Description = invitation.Request.Description
-    };
+        var requestStatus = invitation.Request.Status;
+        return new InvitationDto
+        {
+            Id = invitation.Id,
+            RequestId = invitation.RequestId,
+            TechnicianId = invitation.TechnicianId,
+            Status = EnumMap.ToApi(invitation.Status),
+            SentAt = invitation.SentAt,
+            ServiceArea = invitation.Request.ServiceArea,
+            CategoryName = invitation.Request.Category?.Name,
+            Description = invitation.Request.Description,
+            RequestStatus = EnumMap.ToApi(requestStatus),
+            CanQuote = invitation.Status is not InvitationStatus.Declined and not InvitationStatus.Expired
+                && ServiceRequestRules.AllowsQuotations(requestStatus)
+        };
+    }
 
     private static void ApplyRecommendationExplanations(List<QuoteDto> quotes, DateTimeOffset? preferredStart)
     {

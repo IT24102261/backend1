@@ -220,6 +220,12 @@ public sealed class DeterministicAiModelClient(IOptions<AiOptions> options) : IA
             return 3;
         }
 
+        var digit = System.Text.RegularExpressions.Regex.Match(value, @"\b(\d+)\b");
+        if (digit.Success && int.TryParse(digit.Groups[1].Value, out var parsed) && parsed is > 0 and < 100)
+        {
+            return parsed;
+        }
+
         return null;
     }
 }

@@ -50,9 +50,9 @@ export function LoginPage() {
   return (
     <section className="mx-auto max-w-md px-6 py-16">
       <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-[var(--shadow-card)]">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4efe6] text-[#171717]">
+        <Link to="/" className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f4efe6] text-[#171717]" aria-label="FixFlow home">
           <House size={18} />
-        </span>
+        </Link>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[#171717]">Sign in</h1>
         <p className="mt-2 text-sm leading-6 text-[#6d6a64]">
           Use your FixFlow account. Authorization is always enforced by the API.

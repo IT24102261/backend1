@@ -16,12 +16,12 @@ export function LandingNavbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-[#faf7f1]/95 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <a href="#home" className="flex items-center gap-2.5 text-sm font-semibold text-[#171717]">
+        <Link to="/" className="flex items-center gap-2.5 text-sm font-semibold text-[#171717]">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#171717] text-white">
             <House size={16} aria-hidden="true" />
           </span>
           FixFlow AI
-        </a>
+        </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-[#171717] lg:flex" aria-label="Landing">
           {links.map((link) => (

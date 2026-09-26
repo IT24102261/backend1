@@ -28,7 +28,7 @@ export function Navbar({ onMenu }: { onMenu?: () => void }) {
               <Menu size={20} />
             </button>
           ) : null}
-          <Link to={user ? homePath() : '/'} className="flex items-center gap-2.5 text-sm font-semibold text-[#171717]">
+          <Link to="/" className="flex items-center gap-2.5 text-sm font-semibold text-[#171717]">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#171717] text-white">
               <House size={14} />
             </span>

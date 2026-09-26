@@ -100,10 +100,28 @@ public class RequestPlanningAgent(
             return false;
         }
 
-        return description.Contains("switch", StringComparison.OrdinalIgnoreCase)
-            && quantity is null
-            && !description.Contains("replac", StringComparison.OrdinalIgnoreCase)
-            && !description.Contains("damaged", StringComparison.OrdinalIgnoreCase);
+        if (quantity is not null)
+        {
+            return false;
+        }
+
+        if (description.Contains("replac", StringComparison.OrdinalIgnoreCase)
+            || description.Contains("damaged", StringComparison.OrdinalIgnoreCase)
+            || description.Contains("photo", StringComparison.OrdinalIgnoreCase)
+            || description.Any(char.IsDigit)
+            || ContainsSwitchCountWord(description))
+        {
+            return false;
+        }
+
+        return description.Contains("switch", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsSwitchCountWord(string description)
+    {
+        var value = description.ToLowerInvariant();
+        string[] counts = ["one", "two", "three", "four", "five", "several", "multiple"];
+        return counts.Any(value.Contains);
     }
 
     private Task<List<ServiceCategory>> LoadCatalog(CancellationToken cancellationToken) =>

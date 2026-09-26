@@ -39,7 +39,11 @@ class RequestHistoryScreen extends ConsumerWidget {
               return Card(
                 child: ListTile(
                   title: Text(item.categoryName ?? 'Service request'),
-                  subtitle: Text('${item.description}\n${formatDate(item.createdAt)}'),
+                  subtitle: Text(
+                    item.status == 'CLARIFICATION_REQUIRED'
+                        ? '${item.description}\nNeeds your answer — tap here to reply'
+                        : '${item.description}\n${formatDate(item.createdAt)}',
+                  ),
                   isThreeLine: true,
                   trailing: StatusChip(label: item.status),
                   onTap: () => Navigator.pushNamed(context, AppRoutes.requestDetail, arguments: item.id),

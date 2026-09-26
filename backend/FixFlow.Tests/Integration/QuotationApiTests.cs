@@ -207,4 +207,25 @@ public class QuotationApiTests(FixFlowApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Create_AfterQuoteSelected_IsRejected()
+    {
+        var scenario = await MarketplaceScenario.CreateAsync(fixture);
+        await scenario.SelectQuoteAsync(fixture);
+        using var tech = fixture.CreateClient(scenario.Technician.AccessToken);
+
+        var response = await tech.PostAsJsonAsync($"/api/invitations/{scenario.InvitationId}/quote", new
+        {
+            labourAmount = 4000m,
+            materialsAmount = 1500m,
+            travelAmount = 500m,
+            totalAmount = 6000m,
+            currency = "LKR",
+            durationMinutes = 60,
+            expiresAt = DateTimeOffset.UtcNow.AddDays(2)
+        }, FixFlowApiFixture.Json);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }

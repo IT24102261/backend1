@@ -32,14 +32,27 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
+if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<FixFlowDbContext>().Database.MigrateAsync();
-    await scope.ServiceProvider.GetRequiredService<JaffnaTechnicianSeeder>().SeedAsync();
-    await scope.ServiceProvider.GetRequiredService<NegomboElectricianSeeder>().SeedAsync();
-    await scope.ServiceProvider.GetRequiredService<JaffnaRequestSeeder>().SeedAsync();
-    await scope.ServiceProvider.GetRequiredService<TechnicianRatingSeeder>().SeedAsync();
+    var db = scope.ServiceProvider.GetRequiredService<FixFlowDbContext>();
+    try
+    {
+        await db.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Database migrate failed. Registration and categories will return 500 until ConnectionStrings__Default is a valid Render Postgres string.");
+        throw;
+    }
+
+    if (app.Environment.IsDevelopment())
+    {
+        await scope.ServiceProvider.GetRequiredService<JaffnaTechnicianSeeder>().SeedAsync();
+        await scope.ServiceProvider.GetRequiredService<NegomboElectricianSeeder>().SeedAsync();
+        await scope.ServiceProvider.GetRequiredService<JaffnaRequestSeeder>().SeedAsync();
+        await scope.ServiceProvider.GetRequiredService<TechnicianRatingSeeder>().SeedAsync();
+    }
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -48,11 +61,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-
-if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Testing"))
-{
-    app.UseHttpsRedirection();
 }
 
 app.UseCors();

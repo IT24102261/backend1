@@ -57,6 +57,8 @@ public class InvitationDto
     public string? ServiceArea { get; set; }
     public string? CategoryName { get; set; }
     public string Description { get; set; } = string.Empty;
+    public string RequestStatus { get; set; } = string.Empty;
+    public bool CanQuote { get; set; }
 }
 
 public class ConfirmBookingRequest
