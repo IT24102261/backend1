@@ -208,6 +208,31 @@ public class TechnicianService(
         return new TechnicianPhotoFile(stream, string.IsNullOrWhiteSpace(profile.ProfilePhotoMimeType) ? "image/jpeg" : profile.ProfilePhotoMimeType);
     }
 
+    public async Task<TechnicianProfileDto> SetProfilePhotoAsync(Guid technicianId, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default)
+    {
+        var profile = await profiles.Query().Include(x => x.User).FirstOrDefaultAsync(x => x.Id == technicianId, cancellationToken)
+            ?? throw new NotFoundException("Technician not found.");
+
+        await using var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, cancellationToken);
+        UploadRules.EnsureImage(contentType, buffer.Length);
+        buffer.Position = 0;
+        var key = await files.SaveAsync($"profiles/{profile.Id}", fileName, buffer, cancellationToken);
+        profile.ProfilePhotoStorageKey = key;
+        profile.ProfilePhotoMimeType = contentType;
+        profile.UpdatedAt = DateTimeOffset.UtcNow;
+        await audits.AddAsync(new AuditLog
+        {
+            ActorId = currentUser.UserId,
+            Action = "TECHNICIAN_PHOTO_SET",
+            Entity = "TechnicianProfile",
+            EntityId = profile.Id,
+            Outcome = AuditOutcome.Success
+        }, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return await Map(profile, cancellationToken);
+    }
+
     public Task<TechnicianProfileDto> SuspendTechnicianAsync(Guid technicianId, ApplicationDecisionRequest request, CancellationToken cancellationToken = default) =>
         SetSuspended(technicianId, true, request.Notes, cancellationToken);
 

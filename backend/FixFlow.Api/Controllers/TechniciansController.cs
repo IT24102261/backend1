@@ -34,6 +34,7 @@ public class TechniciansController(ITechnicianService technicians, IReviewServic
             return NotFound();
         }
 
+        Response.Headers.CacheControl = "no-cache, no-store";
         return File(photo.Content, photo.ContentType);
     }
 
@@ -122,6 +123,19 @@ public class AdminTechnicianApplicationsController(ITechnicianService technician
 [Route("api/admin/technicians")]
 public class AdminTechniciansController(ITechnicianService technicians) : ControllerBase
 {
+    [HttpPost("{id:guid}/photo")]
+    [RequestSizeLimit(6_000_000)]
+    public async Task<IActionResult> Photo(Guid id, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { error = "Upload a profile photo.", code = "VALIDATION_FAILED" });
+        }
+
+        await using var stream = file.OpenReadStream();
+        return Ok(await technicians.SetProfilePhotoAsync(id, file.FileName, file.ContentType ?? "application/octet-stream", stream, cancellationToken));
+    }
+
     [HttpPost("{id:guid}/suspend")]
     public async Task<IActionResult> Suspend(Guid id, ApplicationDecisionRequest request, CancellationToken cancellationToken) =>
         Ok(await technicians.SuspendTechnicianAsync(id, request, cancellationToken));

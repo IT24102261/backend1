@@ -36,6 +36,12 @@ class BookingsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Card(
                     child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: mediaUrl(item.profilePhotoUrl) == null
+                            ? null
+                            : NetworkImage(mediaUrl(item.profilePhotoUrl)!),
+                        child: mediaUrl(item.profilePhotoUrl) == null ? const Text('T') : null,
+                      ),
                       title: Text(item.technicianDisplayName ?? 'Booking ${shortId(item.id)}'),
                       subtitle: Text(formatDate(item.confirmedAt)),
                       trailing: StatusChip(label: item.status, display: formatBookingStatus(item.status)),

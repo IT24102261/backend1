@@ -21,6 +21,7 @@ public interface ITechnicianService
     Task<TechnicianApplicationDto> SuspendApplicationAsync(Guid id, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
     Task<PublicTechnicianDto> GetPublicAsync(Guid technicianId, CancellationToken cancellationToken = default);
     Task<TechnicianPhotoFile?> GetPhotoAsync(Guid technicianId, CancellationToken cancellationToken = default);
+    Task<TechnicianProfileDto> SetProfilePhotoAsync(Guid technicianId, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default);
     Task<TechnicianProfileDto> SuspendTechnicianAsync(Guid technicianId, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
     Task<TechnicianProfileDto> ReactivateTechnicianAsync(Guid technicianId, ApplicationDecisionRequest request, CancellationToken cancellationToken = default);
 }

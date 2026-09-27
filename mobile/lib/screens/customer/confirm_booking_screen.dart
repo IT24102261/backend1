@@ -55,7 +55,25 @@ class _ConfirmBookingScreenState extends ConsumerState<ConfirmBookingScreen> {
           children: [
             const Text('Review this booking before confirmation. This records your approval so validation can continue.'),
             const SizedBox(height: 16),
-            Text('Technician: ${shortId(quote.technicianId)}'),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundImage: mediaUrl(quote.profilePhotoUrl) == null
+                      ? null
+                      : NetworkImage(mediaUrl(quote.profilePhotoUrl)!),
+                  child: mediaUrl(quote.profilePhotoUrl) == null ? const Text('T') : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    quote.technicianDisplayName ?? 'Technician ${shortId(quote.technicianId)}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Text('Service: ${widget.request.categoryName ?? widget.request.description}'),
             Text('Total estimate: ${formatMoney(quote.totalAmount, quote.currency)}'),
             Text('Arrival: ${formatDate(quote.arrivalStart)}'),

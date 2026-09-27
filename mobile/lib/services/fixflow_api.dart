@@ -274,6 +274,21 @@ class FixFlowApi {
         return response.data ?? {};
       });
 
+  Future<PagedResult<TechnicianReport>> technicianReports({int page = 1}) => _guard(() async {
+        final response = await _client.http.get<Map<String, dynamic>>(
+          '/api/admin/reports/technicians',
+          queryParameters: {'page': page, 'pageSize': 50},
+        );
+        return PagedResult.fromJson(response.data ?? {}, TechnicianReport.fromJson);
+      });
+
+  Future<void> setTechnicianPhoto(String technicianId, String path, String fileName) => _guard(() async {
+        final form = FormData.fromMap({
+          'file': await MultipartFile.fromFile(path, filename: fileName),
+        });
+        await _client.http.post('/api/admin/technicians/$technicianId/photo', data: form);
+      });
+
   Future<Workflow?> tryWorkflow(String id) async {
     try {
       final response = await _client.http.get<Map<String, dynamic>>('/api/ai/workflows/$id');

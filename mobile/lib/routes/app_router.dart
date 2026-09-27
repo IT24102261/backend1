@@ -28,9 +28,12 @@ class AppRoutes {
   static const technicianJobDetail = '/technician/jobs/detail';
   static const technicianReviews = '/technician/reviews';
   static const technicianNotifications = '/technician/notifications';
+  static const adminHome = '/admin';
+  static const adminTechnicians = '/admin/technicians';
 
   static const customerRoles = ['CUSTOMER'];
   static const technicianRoles = ['TECHNICIAN'];
+  static const adminRoles = ['ADMIN'];
 }
 
 class RoleGuard extends ConsumerWidget {

@@ -113,7 +113,8 @@ public class ReportingService(
             DisplayName = x.User.DisplayName,
             AverageRating = x.AverageRating,
             ReviewCount = x.ReviewCount,
-            IsSuspended = x.IsSuspended
+            IsSuspended = x.IsSuspended,
+            ProfilePhotoUrl = TechnicianPhotoUrl.For(x.Id, x.ProfilePhotoStorageKey)
         }).ToList();
         return Page(items, query, total);
     }

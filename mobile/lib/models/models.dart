@@ -524,3 +524,30 @@ class Workflow {
         planJson: json['planJson']?.toString(),
       );
 }
+
+class TechnicianReport {
+  const TechnicianReport({
+    required this.id,
+    required this.displayName,
+    required this.averageRating,
+    required this.reviewCount,
+    required this.isSuspended,
+    this.profilePhotoUrl,
+  });
+
+  final String id;
+  final String displayName;
+  final double averageRating;
+  final int reviewCount;
+  final bool isSuspended;
+  final String? profilePhotoUrl;
+
+  factory TechnicianReport.fromJson(Map<String, dynamic> json) => TechnicianReport(
+        id: json['id']?.toString() ?? '',
+        displayName: json['displayName']?.toString() ?? '',
+        averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0,
+        reviewCount: json['reviewCount'] as int? ?? 0,
+        isSuspended: json['isSuspended'] == true,
+        profilePhotoUrl: json['profilePhotoUrl']?.toString(),
+      );
+}

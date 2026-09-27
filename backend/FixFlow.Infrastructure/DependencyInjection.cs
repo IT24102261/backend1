@@ -33,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<JaffnaRequestSeeder>();
         services.AddScoped<NegomboElectricianSeeder>();
         services.AddScoped<TechnicianRatingSeeder>();
+        services.AddScoped<TechnicianPhotoSeeder>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IFileStorage, LocalFileStorage>();

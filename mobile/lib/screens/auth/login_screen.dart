@@ -33,6 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String _home(UserProfile user) {
     if (user.isTechnician) return AppRoutes.technicianHome;
     if (user.isCustomer) return AppRoutes.customerHome;
+    if (user.isAdmin) return AppRoutes.adminHome;
     return AppRoutes.unauthorized;
   }
 

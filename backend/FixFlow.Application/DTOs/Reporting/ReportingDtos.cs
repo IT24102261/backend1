@@ -57,6 +57,7 @@ public class TechnicianReportDto
     public decimal AverageRating { get; set; }
     public int ReviewCount { get; set; }
     public bool IsSuspended { get; set; }
+    public string? ProfilePhotoUrl { get; set; }
 }
 
 public class AgentReportDto

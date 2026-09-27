@@ -46,4 +46,9 @@ export const techniciansApi = {
     apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/suspend`, { notes }).then((r) => r.data),
   reactivate: (id: string, notes?: string) =>
     apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/reactivate`, { notes }).then((r) => r.data),
+  setProfilePhoto: (id: string, file: File) => {
+    const data = new FormData()
+    data.append('file', file)
+    return apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/photo`, data).then((r) => r.data)
+  },
 }

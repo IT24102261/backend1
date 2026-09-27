@@ -7,6 +7,7 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { TableSkeleton } from '../../components/ui/Skeleton'
+import { TechnicianAvatar } from '../../components/ui/TechnicianAvatar'
 import type { PublicTechnicianDto, ReviewDto } from '../../types/api'
 import { formatDate } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
@@ -37,6 +38,12 @@ export function TechnicianPublicPage() {
       />
       {loading ? <TableSkeleton /> : null}
       {error ? <ErrorState message={error} /> : null}
+      {profile ? (
+        <div className="mt-6 flex items-center gap-4">
+          <TechnicianAvatar name={profile.displayName} photoUrl={profile.profilePhotoUrl} size={72} />
+          <p className="text-sm text-slate-600">Customers see this photo on quotations and when they confirm a booking.</p>
+        </div>
+      ) : null}
       {profile ? (
         <dl className="mt-6 grid gap-3 rounded-2xl border border-black/8 bg-white p-5 text-sm md:grid-cols-2">
           <div>

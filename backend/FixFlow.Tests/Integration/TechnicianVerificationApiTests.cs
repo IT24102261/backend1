@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FixFlow.Application.DTOs.Technicians;
 using FixFlow.Domain.Constants;
@@ -121,6 +122,27 @@ public class TechnicianVerificationApiTests(FixFlowApiFixture fixture)
 
         Assert.Equal("APPROVED", electricianStatus!.Status);
         Assert.Equal("SUBMITTED", plumberStatus!.Status);
+    }
+
+    [Fact]
+    public async Task AdminCanSetTechnicianProfilePhoto()
+    {
+        var technician = await fixture.RegisterAsync("TECHNICIAN");
+        using var techClient = fixture.CreateClient(technician.AccessToken);
+        var profile = await techClient.GetFromJsonAsync<TechnicianProfileDto>("/api/technicians/profile", FixFlowApiFixture.Json);
+
+        var admin = await fixture.LoginAdminAsync();
+        using var adminClient = fixture.CreateClient(admin.AccessToken);
+        using var content = new MultipartFormDataContent();
+        var photo = new ByteArrayContent([0xFF, 0xD8, 0xFF, 0xD9]);
+        photo.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+        content.Add(photo, "file", "admin-photo.jpg");
+        var response = await adminClient.PostAsync($"/api/admin/technicians/{profile!.Id}/photo", content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var anonymous = fixture.CreateClient();
+        var photoResponse = await anonymous.GetAsync($"/api/technicians/{profile.Id}/photo");
+        Assert.Equal(HttpStatusCode.OK, photoResponse.StatusCode);
     }
 
     [Fact]

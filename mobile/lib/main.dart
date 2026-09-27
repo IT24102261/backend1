@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fixflow_mobile/core/app_theme.dart';
 import 'package:fixflow_mobile/models/models.dart';
 import 'package:fixflow_mobile/routes/app_router.dart';
+import 'package:fixflow_mobile/screens/admin/admin_home_screen.dart';
+import 'package:fixflow_mobile/screens/admin/admin_technicians_screen.dart';
 import 'package:fixflow_mobile/screens/auth/landing_home_screen.dart';
 import 'package:fixflow_mobile/screens/auth/login_screen.dart';
 import 'package:fixflow_mobile/screens/auth/register_screen.dart';
@@ -155,6 +157,14 @@ class FixFlowApp extends StatelessWidget {
           case AppRoutes.technicianNotifications:
             return MaterialPageRoute(
               builder: (_) => const RoleGuard(roles: AppRoutes.technicianRoles, child: NotificationsScreen()),
+            );
+          case AppRoutes.adminHome:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.adminRoles, child: AdminHomeScreen()),
+            );
+          case AppRoutes.adminTechnicians:
+            return MaterialPageRoute(
+              builder: (_) => const RoleGuard(roles: AppRoutes.adminRoles, child: AdminTechniciansScreen()),
             );
           default:
             return MaterialPageRoute(builder: (_) => const SplashScreen());

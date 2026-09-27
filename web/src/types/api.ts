@@ -395,6 +395,7 @@ export type TechnicianReportDto = {
   averageRating: number
   reviewCount: number
   isSuspended: boolean
+  profilePhotoUrl?: string | null
 }
 
 export type AgentReportDto = {
