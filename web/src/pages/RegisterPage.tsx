@@ -10,6 +10,7 @@ import { pathForRole } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 import type { CategoryDto } from '../types/api'
 import { getApiError } from '../utils/errors'
+import { isValidEmail, isValidPhone } from '../utils/validation'
 
 export function RegisterPage() {
   const register = useAuth((state) => state.register)
@@ -44,12 +45,15 @@ export function RegisterPage() {
     event.preventDefault()
     const next: Record<string, string> = {}
     if (displayName.trim().length < 2) next.displayName = 'Enter your full name.'
-    if (!email.includes('@')) next.email = 'Enter a valid email.'
+    if (!isValidEmail(email)) next.email = 'Enter a valid email with one @.'
     if (password.length < 8) next.password = 'Use at least 8 characters.'
+    if (role === 'TECHNICIAN' && !isValidPhone(phone)) next.phone = 'Phone number must be 10 digits.'
+    if (role === 'CUSTOMER' && phone.trim() && !isValidPhone(phone)) next.phone = 'Phone number must be 10 digits.'
     const selectedTrade = categories.find((item) => item.id === categoryId)
     const electricianSelected = selectedTrade?.name.toLowerCase() === 'electrician'
     if (role === 'TECHNICIAN') {
       if (!phone.trim()) next.phone = 'Enter your phone number.'
+      else if (!isValidPhone(phone)) next.phone = 'Phone number must be 10 digits.'
       if (!address.trim()) next.address = 'Enter your address.'
       if (!categoryId) next.categoryId = 'Select the field you work in.'
       if (!nicPhoto) next.nicPhoto = 'Upload a photo of your NIC.'
@@ -120,8 +124,8 @@ export function RegisterPage() {
           <FormField label="Email" error={errors.email}>
             <TextInput type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
           </FormField>
-          <FormField label="Phone" error={errors.phone}>
-            <TextInput value={phone} onChange={(event) => setPhone(event.target.value)} />
+          <FormField label="Phone" error={errors.phone} hint="10 digits, for example 0771234567.">
+            <TextInput value={phone} inputMode="numeric" maxLength={10} onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} />
           </FormField>
           {role === 'TECHNICIAN' ? (
             <>

@@ -22,14 +22,20 @@ public class AssignmentCompletenessTests(FixFlowApiFixture fixture)
         {
             description = "Two wall switches are not working. I want both replaced.",
             budgetAmount = 15000m,
-            serviceArea = "Colombo"
+            serviceArea = "Colombo",
+            preferredStart = DateTimeOffset.UtcNow.AddDays(1),
+            preferredEnd = DateTimeOffset.UtcNow.AddDays(1).AddHours(2)
         }, FixFlowApiFixture.Json);
         created.EnsureSuccessStatusCode();
         var request = await created.Content.ReadFromJsonAsync<RequestDto>(FixFlowApiFixture.Json);
         Assert.Equal(15000m, request!.BudgetAmount);
 
         using var strangerClient = fixture.CreateClient(stranger.AccessToken);
-        var update = await strangerClient.PutAsJsonAsync($"/api/requests/{request.Id}", new { description = "Hijack" }, FixFlowApiFixture.Json);
+        var update = await strangerClient.PutAsJsonAsync($"/api/requests/{request.Id}", new
+        {
+            description = "Hijack",
+            preferredStart = DateTimeOffset.UtcNow.AddDays(1)
+        }, FixFlowApiFixture.Json);
         var delete = await strangerClient.DeleteAsync($"/api/requests/{request.Id}");
         Assert.Equal(HttpStatusCode.Forbidden, update.StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, delete.StatusCode);

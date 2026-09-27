@@ -7,6 +7,7 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { useAuth } from '../hooks/useAuth'
 import { pathForRole, postLoginPath } from '../store/authStore'
 import { getApiError } from '../utils/errors'
+import { isValidEmail } from '../utils/validation'
 import { useToastStore } from '../store/toastStore'
 
 export function LoginPage() {
@@ -28,7 +29,7 @@ export function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nextErrors: Record<string, string> = {}
-    if (!email.includes('@')) nextErrors.email = 'Enter a valid email.'
+    if (!isValidEmail(email)) nextErrors.email = 'Enter a valid email with one @.'
     if (!password) nextErrors.password = 'Password is required.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return

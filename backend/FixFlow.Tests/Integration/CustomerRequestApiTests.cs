@@ -126,6 +126,8 @@ public class CustomerRequestApiTests(FixFlowApiFixture fixture)
         serviceArea = "Colombo",
         address = "12 Flower Road, Colombo",
         latitude = 6.9271,
-        longitude = 79.8612
+        longitude = 79.8612,
+        preferredStart = DateTimeOffset.UtcNow.AddDays(1),
+        preferredEnd = DateTimeOffset.UtcNow.AddDays(1).AddHours(2)
     };
 }

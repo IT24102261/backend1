@@ -20,7 +20,8 @@ public class AuthApiTests(FixFlowApiFixture fixture)
             email,
             password = FixFlowApiFixture.Password,
             displayName = "Valid Customer",
-            role = "CUSTOMER"
+            role = "CUSTOMER",
+            phone = "0771234567"
         }, FixFlowApiFixture.Json);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

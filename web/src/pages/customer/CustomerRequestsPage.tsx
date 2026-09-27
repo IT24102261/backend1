@@ -15,6 +15,7 @@ import { useToastStore } from '../../store/toastStore'
 import type { CategoryDto, QuoteDto, RequestDto } from '../../types/api'
 import { formatDate, formatMoney } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
+import { datetimeLocalMin, isFutureDateTime } from '../../utils/validation'
 
 function requestHelpText(status: string) {
   switch (status) {
@@ -67,6 +68,7 @@ export function CustomerRequestsPage() {
   const [questions, setQuestions] = useState<Record<string, string>>({})
   const [descError, setDescError] = useState('')
   const [areaError, setAreaError] = useState('')
+  const [dateError, setDateError] = useState('')
 
   function load() {
     setLoading(true)
@@ -129,8 +131,13 @@ export function CustomerRequestsPage() {
       setAreaError('Enter the service area so matching can invite nearby technicians.')
       return
     }
+    if (!preferredStart || !isFutureDateTime(preferredStart)) {
+      setDateError('Choose a future date and time. Past dates are not allowed.')
+      return
+    }
     setDescError('')
     setAreaError('')
+    setDateError('')
     try {
       const created = await requestsApi.create({
         categoryId: categoryId || undefined,
@@ -294,8 +301,8 @@ export function CustomerRequestsPage() {
             {gpsNote ? <p className="text-xs text-[#6d6a64]">{gpsNote}</p> : null}
           </div>
         </FormField>
-        <FormField label="Preferred appointment">
-          <TextInput type="datetime-local" value={preferredStart} onChange={(event) => setPreferredStart(event.target.value)} />
+        <FormField label="Preferred appointment" error={dateError} hint="Must be a future date and time.">
+          <TextInput type="datetime-local" min={datetimeLocalMin()} value={preferredStart} onChange={(event) => setPreferredStart(event.target.value)} />
         </FormField>
         <FormField label="Budget (optional)">
           <TextInput type="number" min="1" value={budget} onChange={(event) => setBudget(event.target.value)} />

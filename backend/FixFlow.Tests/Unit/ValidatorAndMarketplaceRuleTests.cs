@@ -2,6 +2,7 @@ using FixFlow.Application.Agents.Tools;
 using FixFlow.Application.Agents.Contracts;
 using FixFlow.Application.Agents.Safety;
 using FixFlow.Application.DTOs.Quotes;
+using FixFlow.Application.DTOs.Requests;
 using FixFlow.Application.DTOs.Reviews;
 using FixFlow.Application.Validators;
 using FixFlow.Domain.Constants;
@@ -91,5 +92,51 @@ public class ValidatorAndMarketplaceRuleTests
         Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.CollectingQuotes));
         Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.AwaitingCustomerApproval));
         Assert.False(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.Booked));
+    }
+
+    [Fact]
+    public async Task RegisterValidator_RejectsEmailWithoutSingleAt()
+    {
+        var validator = new RegisterRequestValidator();
+        var result = await validator.ValidateAsync(new FixFlow.Application.DTOs.Auth.RegisterRequest
+        {
+            Email = "not-an-email",
+            Password = "Password1!",
+            DisplayName = "Test",
+            Role = "CUSTOMER"
+        });
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, x => x.ErrorMessage.Contains('@'));
+    }
+
+    [Fact]
+    public async Task RegisterValidator_RejectsPhoneThatIsNotTenDigits()
+    {
+        var validator = new RegisterRequestValidator();
+        var result = await validator.ValidateAsync(new FixFlow.Application.DTOs.Auth.RegisterRequest
+        {
+            Email = "ok@fixflow.test",
+            Password = "Password1!",
+            DisplayName = "Tech",
+            Role = "TECHNICIAN",
+            Phone = "12345",
+            Address = "Nallur",
+            CategoryId = ServiceCategorySeed.Electrician
+        });
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, x => x.ErrorMessage.Contains("10 digits"));
+    }
+
+    [Fact]
+    public async Task RequestValidator_RejectsPastPreferredStart()
+    {
+        var validator = new RequestWriteRequestValidator();
+        var result = await validator.ValidateAsync(new RequestWriteRequest
+        {
+            Description = "Need an electrician tomorrow.",
+            PreferredStart = DateTimeOffset.UtcNow.AddDays(-1)
+        });
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, x => x.ErrorMessage.Contains("future"));
     }
 }

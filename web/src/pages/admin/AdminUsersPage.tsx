@@ -14,6 +14,7 @@ import { useToastStore } from '../../store/toastStore'
 import type { AdminUserDto, CategoryDto } from '../../types/api'
 import { formatDate } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
+import { isValidEmail, isValidPhone } from '../../utils/validation'
 
 export function AdminUsersPage() {
   const query = usePagedQuery()
@@ -56,6 +57,14 @@ export function AdminUsersPage() {
 
   async function create(event: FormEvent) {
     event.preventDefault()
+    if (!isValidEmail(email)) {
+      push('error', 'Enter a valid email with one @.')
+      return
+    }
+    if (phone.trim() && !isValidPhone(phone)) {
+      push('error', 'Phone number must be 10 digits.')
+      return
+    }
     try {
       await adminApi.createUser({
         email,
@@ -158,8 +167,8 @@ export function AdminUsersPage() {
         <FormField label="Password">
           <TextInput type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
         </FormField>
-        <FormField label="Phone">
-          <TextInput value={phone} onChange={(event) => setPhone(event.target.value)} />
+        <FormField label="Phone" hint="10 digits, for example 0771234567.">
+          <TextInput value={phone} inputMode="numeric" maxLength={10} onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} />
         </FormField>
         <FormField label="Account type">
           <SelectInput value={createRole} onChange={(event) => setCreateRole(event.target.value as 'CUSTOMER' | 'TECHNICIAN')}>

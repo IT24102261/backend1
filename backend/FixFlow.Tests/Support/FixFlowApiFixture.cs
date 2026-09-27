@@ -85,7 +85,7 @@ public sealed class FixFlowApiFixture : IAsyncLifetime
         }
         else
         {
-            response = await client.PostAsJsonAsync("/api/auth/register", new { email, password = Password, displayName, role }, Json);
+            response = await client.PostAsJsonAsync("/api/auth/register", new { email, password = Password, displayName, role, phone = "0771234567" }, Json);
         }
         response.EnsureSuccessStatusCode();
         var body = (await response.Content.ReadFromJsonAsync<AuthResponse>(Json))!;

@@ -44,7 +44,7 @@ public class AuthService(
             Email = email,
             PasswordHash = passwordHasher.Hash(request.Password),
             DisplayName = request.DisplayName.Trim(),
-            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+            Phone = InputRules.NormalizePhone(request.Phone),
             Role = role,
             IsActive = role != UserRole.Technician
         };
@@ -206,7 +206,7 @@ public class AuthService(
         var user = await users.GetByIdAsync(currentUser.UserId, cancellationToken)
             ?? throw new NotFoundException("User not found.");
         user.DisplayName = request.DisplayName.Trim();
-        user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        user.Phone = InputRules.NormalizePhone(request.Phone);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return await GetMeAsync(cancellationToken);
     }

@@ -7,6 +7,7 @@ import 'package:fixflow_mobile/routes/app_router.dart';
 import 'package:fixflow_mobile/utils/constants.dart';
 import 'package:fixflow_mobile/widgets/async_body.dart';
 import 'package:fixflow_mobile/widgets/fixflow_ui.dart';
+import 'package:fixflow_mobile/utils/validators.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -78,7 +79,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (value) => value != null && value.contains('@') ? null : 'Enter a valid email',
+                    validator: emailValidator,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(

@@ -9,6 +9,7 @@ import 'package:fixflow_mobile/routes/app_router.dart';
 import 'package:fixflow_mobile/services/device_location_service.dart';
 import 'package:fixflow_mobile/services/geolocator_location_platform.dart';
 import 'package:fixflow_mobile/widgets/fixflow_ui.dart';
+import 'package:fixflow_mobile/utils/validators.dart';
 
 class CreateRequestScreen extends ConsumerStatefulWidget {
   const CreateRequestScreen({super.key});
@@ -92,6 +93,11 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
       setState(() => _error = 'Choose a preferred appointment date and time.');
       return;
     }
+    final start = DateTime(_date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
+    if (!isFutureDateTime(start)) {
+      setState(() => _error = 'Choose a future date and time. Past dates are not allowed.');
+      return;
+    }
     if (_address.text.trim().isEmpty && (_lat == null || _lng == null)) {
       setState(() => _error = 'Allow location or enter a manual address.');
       return;
@@ -101,9 +107,7 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
       _error = null;
     });
     try {
-      final start = _date == null
-          ? null
-          : DateTime(_date!.year, _date!.month, _date!.day, _time?.hour ?? 9, _time?.minute ?? 0);
+      final start = DateTime(_date!.year, _date!.month, _date!.day, _time!.hour, _time!.minute);
       final created = await ref.read(apiProvider).createRequest({
         if (_categoryId != null) 'categoryId': _categoryId,
         'description': _description.text.trim(),
@@ -172,7 +176,7 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
                   context: context,
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 60)),
-                  initialDate: DateTime.now(),
+                  initialDate: DateTime.now().add(const Duration(days: 1)),
                 );
                 if (picked != null) setState(() => _date = picked);
               },

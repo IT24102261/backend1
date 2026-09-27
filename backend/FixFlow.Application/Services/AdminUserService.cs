@@ -86,7 +86,7 @@ public class AdminUserService(
             Email = email,
             PasswordHash = passwordHasher.Hash(request.Password),
             DisplayName = request.DisplayName.Trim(),
-            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
+            Phone = InputRules.NormalizePhone(request.Phone),
             Role = role
         };
         await users.AddAsync(user, cancellationToken);

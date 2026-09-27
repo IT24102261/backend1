@@ -8,6 +8,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { tokenStorage } from '../../services/tokenStorage'
 import { useToastStore } from '../../store/toastStore'
 import { getApiError } from '../../utils/errors'
+import { isValidPhone } from '../../utils/validation'
 
 export function CustomerProfilePage() {
   const user = useAuth((state) => state.user)
@@ -18,6 +19,7 @@ export function CustomerProfilePage() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [error, setError] = useState('')
+  const [phoneError, setPhoneError] = useState('')
 
   useEffect(() => {
     authApi
@@ -32,6 +34,11 @@ export function CustomerProfilePage() {
 
   async function saveProfile(event: FormEvent) {
     event.preventDefault()
+    if (phone.trim() && !isValidPhone(phone)) {
+      setPhoneError('Phone number must be 10 digits.')
+      return
+    }
+    setPhoneError('')
     try {
       const me = await authApi.updateProfile({ displayName, phone })
       tokenStorage.setUser(me)
@@ -62,8 +69,8 @@ export function CustomerProfilePage() {
         <FormField label="Display name">
           <TextInput value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
         </FormField>
-        <FormField label="Phone">
-          <TextInput value={phone} onChange={(event) => setPhone(event.target.value)} />
+        <FormField label="Phone" error={phoneError} hint="10 digits.">
+          <TextInput value={phone} inputMode="numeric" maxLength={10} onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))} />
         </FormField>
         <Button type="submit">Save profile</Button>
       </form>

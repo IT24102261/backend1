@@ -22,12 +22,15 @@ builder.Services.AddControllers();
 builder.Services.AddFixFlowServices(builder.Configuration);
 builder.Services.AddCors(options =>
 {
+    var origins = (builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+        ?? ["http://localhost:5173"])
+        .Concat(["https://backend1-1-jihh.onrender.com"])
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
     options.AddDefaultPolicy(policy =>
         policy.AllowAnyHeader()
             .AllowAnyMethod()
-            .WithOrigins(
-                builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-                ?? ["http://localhost:5173"]));
+            .WithOrigins(origins));
 });
 
 var app = builder.Build();

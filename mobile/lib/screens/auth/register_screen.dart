@@ -7,6 +7,7 @@ import 'package:fixflow_mobile/providers/app_providers.dart';
 import 'package:fixflow_mobile/routes/app_router.dart';
 import 'package:fixflow_mobile/widgets/async_body.dart';
 import 'package:fixflow_mobile/widgets/fixflow_ui.dart';
+import 'package:fixflow_mobile/utils/validators.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key, this.initialRole});
@@ -174,15 +175,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _email,
                   decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (value) => value != null && value.contains('@') ? null : 'Enter a valid email',
+                  validator: emailValidator,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _phone,
-                  decoration: const InputDecoration(labelText: 'Phone'),
-                  validator: (value) => _role == 'TECHNICIAN' && (value == null || value.trim().isEmpty)
-                      ? 'Enter your phone number'
-                      : null,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  decoration: const InputDecoration(labelText: 'Phone', hintText: '10 digits', counterText: ''),
+                  validator: (value) => phoneValidator(value, required: _role == 'TECHNICIAN'),
                 ),
                 if (_role == 'TECHNICIAN') ...[
                   const SizedBox(height: 12),
