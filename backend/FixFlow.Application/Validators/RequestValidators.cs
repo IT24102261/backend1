@@ -118,6 +118,13 @@ public class QuoteWriteRequestValidator : AbstractValidator<QuoteWriteRequest>
         RuleFor(x => x.TravelAmount).GreaterThanOrEqualTo(0);
         RuleFor(x => x.TotalAmount).GreaterThanOrEqualTo(0);
         RuleFor(x => x.DurationMinutes).GreaterThan(0).When(x => x.DurationMinutes.HasValue);
+        RuleFor(x => x.ArrivalStart)
+            .NotNull()
+            .WithMessage("Choose a proposed arrival date and time.");
+        RuleFor(x => x.ArrivalStart)
+            .Must(InputRules.IsFuture)
+            .WithMessage("Choose a future arrival date and time. Past dates are not allowed.")
+            .When(x => x.ArrivalStart.HasValue);
         RuleFor(x => x.ExpiresAt).GreaterThan(DateTimeOffset.UtcNow).When(x => x.ExpiresAt.HasValue);
         RuleFor(x => x.Currency).NotEmpty().Length(3);
         RuleFor(x => x).Must(x => x.LabourAmount + x.MaterialsAmount + x.TravelAmount == x.TotalAmount)

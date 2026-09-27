@@ -26,6 +26,7 @@ public class ValidatorAndMarketplaceRuleTests
             TotalAmount = 99,
             Currency = "LKR",
             DurationMinutes = 30,
+            ArrivalStart = DateTimeOffset.UtcNow.AddDays(1),
             ExpiresAt = DateTimeOffset.UtcNow.AddHours(2)
         });
 
@@ -136,6 +137,26 @@ public class ValidatorAndMarketplaceRuleTests
             Description = "Need an electrician tomorrow.",
             PreferredStart = DateTimeOffset.UtcNow.AddDays(-1)
         });
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, x => x.ErrorMessage.Contains("future"));
+    }
+
+    [Fact]
+    public async Task QuoteValidator_RejectsPastArrivalStart()
+    {
+        var validator = new QuoteWriteRequestValidator();
+        var result = await validator.ValidateAsync(new QuoteWriteRequest
+        {
+            LabourAmount = 10,
+            MaterialsAmount = 5,
+            TravelAmount = 1,
+            TotalAmount = 16,
+            Currency = "LKR",
+            DurationMinutes = 30,
+            ArrivalStart = DateTimeOffset.UtcNow.AddDays(-1),
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(2)
+        });
+
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, x => x.ErrorMessage.Contains("future"));
     }

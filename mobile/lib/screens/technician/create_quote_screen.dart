@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fixflow_mobile/models/models.dart';
 import 'package:fixflow_mobile/providers/app_providers.dart';
 import 'package:fixflow_mobile/utils/formatters.dart';
+import 'package:fixflow_mobile/utils/validators.dart';
 import 'package:fixflow_mobile/widgets/fixflow_ui.dart';
 
 class CreateQuoteScreen extends ConsumerStatefulWidget {
@@ -41,7 +42,11 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
     if (_arrival == null) {
-      setState(() => _error = 'Set an arrival window.');
+      setState(() => _error = 'Choose a proposed arrival date and time.');
+      return;
+    }
+    if (!isFutureDateTime(_arrival!)) {
+      setState(() => _error = 'Choose a future arrival date and time. Past dates are not allowed.');
       return;
     }
     setState(() {
@@ -113,12 +118,18 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
                   context: context,
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 30)),
-                  initialDate: DateTime.now(),
+                  initialDate: DateTime.now().add(const Duration(days: 1)),
                 );
                 if (date == null || !context.mounted) return;
                 final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
                 if (time == null) return;
-                setState(() => _arrival = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+                final picked = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                setState(() {
+                  _arrival = picked;
+                  _error = isFutureDateTime(picked)
+                      ? null
+                      : 'Choose a future arrival date and time. Past dates are not allowed.';
+                });
               },
             ),
             if (!widget.invitation.canQuote)

@@ -13,6 +13,7 @@ import { useToastStore } from '../../store/toastStore'
 import type { InvitationDto, QuoteDto } from '../../types/api'
 import { formatMoney } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
+import { datetimeLocalMin, isFutureDateTime } from '../../utils/validation'
 
 export function TechnicianQuotationsPage() {
   const push = useToastStore((state) => state.push)
@@ -72,6 +73,10 @@ export function TechnicianQuotationsPage() {
     event.preventDefault()
     if (!invitationId) {
       setValidation('Select an invitation.')
+      return
+    }
+    if (!arrivalStart || !isFutureDateTime(arrivalStart)) {
+      setValidation('Choose a future arrival date and time. Past dates are not allowed.')
       return
     }
     setValidation('')
@@ -182,7 +187,12 @@ export function TechnicianQuotationsPage() {
           <SectionLabel>Quote details</SectionLabel>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <FormField label="Proposed arrival">
-              <TextInput type="datetime-local" value={arrivalStart} onChange={(event) => setArrivalStart(event.target.value)} />
+              <TextInput
+                type="datetime-local"
+                min={datetimeLocalMin()}
+                value={arrivalStart}
+                onChange={(event) => setArrivalStart(event.target.value)}
+              />
             </FormField>
             <FormField label="Assumptions">
               <TextArea value={assumptions} onChange={(event) => setAssumptions(event.target.value)} />
