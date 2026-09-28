@@ -286,7 +286,7 @@ public sealed class CheckAvailabilityTool(IRepository<Booking> bookings, IReposi
             .Where(x => x.TechnicianId == technicianId && (ignoreBookingId == null || x.Id != ignoreBookingId))
             .ToMaterializedListAsync(cancellationToken);
 
-        foreach (var booking in active.Where(x => BookingStateMachine.IsActive(x.Status)))
+        foreach (var booking in active.Where(x => BookingStateMachine.OccupiesTechnician(x.Status)))
         {
             var quote = await quotations.GetByIdAsync(booking.QuotationId, cancellationToken);
             if (quote?.ArrivalStart is null)
@@ -323,7 +323,7 @@ public sealed class CheckCapacityTool(IRepository<Booking> bookings) : AgentTool
         }
 
         var jobs = await bookings.Query().Where(x => x.TechnicianId == technicianId).ToMaterializedListAsync(cancellationToken);
-        var active = jobs.Count(x => BookingStateMachine.IsActive(x.Status));
+        var active = jobs.Count(x => BookingStateMachine.OccupiesTechnician(x.Status));
         return AgentToolResult.Success(new { technicianId, active, withinCapacity = active < MaxActiveJobs });
     }
 }

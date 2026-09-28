@@ -1,5 +1,6 @@
 using FixFlow.Api.Extensions;
 using FixFlow.Api.Middleware;
+using FixFlow.Application.Interfaces;
 using FixFlow.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,6 +59,8 @@ if (!app.Environment.IsEnvironment("Testing"))
         await scope.ServiceProvider.GetRequiredService<JaffnaRequestSeeder>().SeedAsync();
         await scope.ServiceProvider.GetRequiredService<TechnicianRatingSeeder>().SeedAsync();
     }
+
+    await scope.ServiceProvider.GetRequiredService<IAgentOrchestrator>().EnsureOpenInvitationsAsync();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

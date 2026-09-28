@@ -148,6 +148,36 @@ public class AgenticWorkflowTests
     }
 
     [Fact]
+    public async Task FinishedJobs_DoNotBlockApprovedTechnicians_ButOpenJobsDo()
+    {
+        var harness = Harness.Create();
+        var request = harness.SeedGoldenRequest();
+        var finished = harness.VerifiedElectrician;
+        var stillWorking = harness.AddTechnician("working@fixflow.test", "Jaffna", approved: true);
+
+        for (var i = 0; i < CheckCapacityTool.MaxActiveJobs; i++)
+        {
+            harness.Bookings.Items.Add(new Booking
+            {
+                RequestId = Guid.NewGuid(),
+                TechnicianId = finished.Id,
+                Status = BookingStatus.CustomerConfirmed
+            });
+            harness.Bookings.Items.Add(new Booking
+            {
+                RequestId = Guid.NewGuid(),
+                TechnicianId = stillWorking.Id,
+                Status = BookingStatus.InProgress
+            });
+        }
+
+        await harness.Orchestrator.StartRequestWorkflowAsync(request.Id);
+
+        Assert.Contains(harness.Invitations.Items, x => x.TechnicianId == finished.Id);
+        Assert.DoesNotContain(harness.Invitations.Items, x => x.TechnicianId == stillWorking.Id);
+    }
+
+    [Fact]
     public async Task UnverifiedTechnician_IsNeverInvitedOrBooked()
     {
         var harness = Harness.Create();

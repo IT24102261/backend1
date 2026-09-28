@@ -42,4 +42,13 @@ public static class BookingStateMachine
         Allowed.TryGetValue(from, out var next) && next.Contains(to);
 
     public static bool IsActive(BookingStatus status) => Active.Contains(status);
+
+    public static bool OccupiesTechnician(BookingStatus status) =>
+        status is BookingStatus.PendingValidation
+            or BookingStatus.Confirmed
+            or BookingStatus.Accepted
+            or BookingStatus.EnRoute
+            or BookingStatus.InProgress
+            or BookingStatus.WorkCompleted
+            or BookingStatus.Disputed;
 }

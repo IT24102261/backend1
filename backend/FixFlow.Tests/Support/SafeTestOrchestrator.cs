@@ -18,6 +18,9 @@ public sealed class SafeTestOrchestrator(AgentOrchestrator inner) : IAgentOrches
     public Task<WorkflowRunResult> ResumeAfterClarificationAsync(Guid requestId, CancellationToken cancellationToken = default) =>
         Guard(() => inner.ResumeAfterClarificationAsync(requestId, cancellationToken), "MATCHING");
 
+    public Task<int> EnsureOpenInvitationsAsync(CancellationToken cancellationToken = default) =>
+        inner.EnsureOpenInvitationsAsync(cancellationToken);
+
     public Task<WorkflowRunResult> CollectAndRecommendAsync(Guid requestId, CancellationToken cancellationToken = default) =>
         Guard(() => inner.CollectAndRecommendAsync(requestId, cancellationToken), "WAITING_FOR_CUSTOMER_APPROVAL");
 

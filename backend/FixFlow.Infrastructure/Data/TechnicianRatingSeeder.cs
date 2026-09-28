@@ -26,6 +26,8 @@ public sealed class TechnicianRatingSeeder(FixFlowDbContext db, IPasswordHasher 
 
     public async Task<int> SeedAsync(CancellationToken cancellationToken = default)
     {
+        await CloseHistoryBookingsAsync(cancellationToken);
+
         var technicians = await db.TechnicianProfiles
             .Include(x => x.User)
             .Include(x => x.Applications)
@@ -112,7 +114,7 @@ public sealed class TechnicianRatingSeeder(FixFlowDbContext db, IPasswordHasher 
                     QuotationId = quoteId,
                     CustomerId = customer.Id,
                     TechnicianId = technician.Id,
-                    Status = BookingStatus.CustomerConfirmed,
+                    Status = BookingStatus.Closed,
                     ApprovedAt = completedAt.AddHours(-6),
                     ConfirmedAt = completedAt.AddHours(-5),
                     AddressReleaseAt = completedAt.AddHours(-5)
@@ -139,6 +141,25 @@ public sealed class TechnicianRatingSeeder(FixFlowDbContext db, IPasswordHasher 
 
         logger.LogInformation("Seeded {Reviews} published reviews for {Technicians} technicians.", addedReviews, pending.Length);
         return addedReviews;
+    }
+
+    private async Task CloseHistoryBookingsAsync(CancellationToken cancellationToken)
+    {
+        var rows = await db.Bookings
+            .Where(x => x.Status == BookingStatus.CustomerConfirmed && x.Request.Description.StartsWith(HistoryPrefix))
+            .ToListAsync(cancellationToken);
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var booking in rows)
+        {
+            booking.Status = BookingStatus.Closed;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Closed {Count} historical rating bookings so finished jobs no longer block new requests.", rows.Count);
     }
 
     private async Task<User> EnsureCustomerAsync(CancellationToken cancellationToken)

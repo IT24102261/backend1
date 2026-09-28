@@ -79,6 +79,57 @@ public class AgentOrchestrator(
     public Task<WorkflowRunResult> ResumeAfterClarificationAsync(Guid requestId, CancellationToken cancellationToken = default) =>
         RunPlanningAndMatchingAsync(requestId, resume: true, cancellationToken);
 
+    public async Task<int> EnsureOpenInvitationsAsync(CancellationToken cancellationToken = default)
+    {
+        var open = await requests.Query()
+            .Where(x => x.Status == ServiceRequestStatus.Matching || x.Status == ServiceRequestStatus.CollectingQuotes)
+            .Where(x => !x.Description.StartsWith("[History]") && !x.Description.StartsWith("[Demo]"))
+            .ToMaterializedListAsync(cancellationToken);
+
+        var added = 0;
+        foreach (var request in open)
+        {
+            if (request.CategoryId is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                var matching = await matchingAgent.RunAsync(
+                    new MatchingInput
+                    {
+                        RequestId = request.Id,
+                        CategoryId = request.CategoryId,
+                        ServiceArea = request.ServiceArea,
+                        PreferredStart = request.PreferredStart,
+                        PreferredEnd = request.PreferredEnd
+                    },
+                    new AgentToolContext
+                    {
+                        Agent = AgentRole.TechnicianMatching,
+                        RequestId = request.Id,
+                        ActorId = currentUser.UserId
+                    },
+                    options.Value.MaxOutputChars,
+                    cancellationToken);
+                var eligibleIds = matching.Output.EligibleTechnicians.Select(x => x.TechnicianId).Distinct().ToList();
+                added += await InviteMissingAsync(request.Id, eligibleIds, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Could not fill invitations for open request {RequestId}.", request.Id);
+            }
+        }
+
+        if (added > 0)
+        {
+            logger.LogInformation("Added {Count} missing invitations for open requests.", added);
+        }
+
+        return added;
+    }
+
     public async Task<WorkflowRunResult> CollectAndRecommendAsync(Guid requestId, CancellationToken cancellationToken = default)
     {
         var request = await LoadRequest(requestId, cancellationToken);
@@ -368,21 +419,13 @@ public class AgentOrchestrator(
             await PersistWorkflowAsync(cancellationToken);
             await RecordStep(workflow, AgentRole.TechnicianMatching, "Match approved technicians", matching.Output, matching.ToolsUsed, new { eligible = eligibleIds.Count }, cancellationToken);
 
-            var existing = await invitations.Query().Where(x => x.RequestId == requestId).ToMaterializedListAsync(cancellationToken);
-            var created = eligibleIds.Except(existing.Select(x => x.TechnicianId))
-                .Select(technicianId => new RequestInvitation { RequestId = requestId, TechnicianId = technicianId })
-                .ToList();
-            if (created.Count > 0)
-            {
-                await invitations.AddRangeAsync(created, cancellationToken);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-            }
+            var createdCount = await InviteMissingAsync(requestId, eligibleIds, cancellationToken);
 
             await Move(workflow, AiWorkflowStatus.QuoteCollection, "QUOTE_COLLECTION", cancellationToken);
             await ChangeRequestStatusAsync(
                 request,
-                created.Count > 0 ? ServiceRequestStatus.CollectingQuotes : ServiceRequestStatus.Matching,
-                created.Count > 0 ? $"Invited {created.Count} category-approved technicians." : "No eligible verified technicians yet.",
+                createdCount > 0 ? ServiceRequestStatus.CollectingQuotes : ServiceRequestStatus.Matching,
+                createdCount > 0 ? $"Invited {createdCount} category-approved technicians." : "No eligible verified technicians yet.",
                 cancellationToken);
             return Map(workflow);
         }
@@ -395,6 +438,22 @@ public class AgentOrchestrator(
         {
             return await Fail(workflow, request, ex, cancellationToken);
         }
+    }
+
+    private async Task<int> InviteMissingAsync(Guid requestId, IReadOnlyList<Guid> eligibleIds, CancellationToken cancellationToken)
+    {
+        var existing = await invitations.Query().Where(x => x.RequestId == requestId).ToMaterializedListAsync(cancellationToken);
+        var created = eligibleIds.Except(existing.Select(x => x.TechnicianId))
+            .Select(technicianId => new RequestInvitation { RequestId = requestId, TechnicianId = technicianId })
+            .ToList();
+        if (created.Count == 0)
+        {
+            return 0;
+        }
+
+        await invitations.AddRangeAsync(created, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return created.Count;
     }
 
     private async Task<T> RunWithRetry<T>(Func<Task<T>> action, AiWorkflow workflow, AgentRole agent, CancellationToken cancellationToken)

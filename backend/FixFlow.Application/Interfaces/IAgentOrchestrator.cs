@@ -8,6 +8,7 @@ public interface IAgentOrchestrator
 {
     Task<AgentResponse> RunAsync(AgentRequest request, CancellationToken cancellationToken = default);
     Task<WorkflowRunResult> StartRequestWorkflowAsync(Guid requestId, CancellationToken cancellationToken = default);
+    Task<int> EnsureOpenInvitationsAsync(CancellationToken cancellationToken = default);
     Task<WorkflowRunResult> ResumeAfterClarificationAsync(Guid requestId, CancellationToken cancellationToken = default);
     Task<WorkflowRunResult> CollectAndRecommendAsync(Guid requestId, CancellationToken cancellationToken = default);
     Task<WorkflowRunResult> ValidateSelectedQuoteAsync(Guid requestId, Guid quotationId, Guid customerId, CancellationToken cancellationToken = default);
