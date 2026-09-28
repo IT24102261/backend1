@@ -65,7 +65,7 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5">
-            {loading ? (
+            {loading && rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-6">
                   <TableSkeleton rows={5} />

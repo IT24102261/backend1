@@ -72,9 +72,10 @@ export function CustomerRequestsPage() {
   const [areaError, setAreaError] = useState('')
   const [dateError, setDateError] = useState('')
   const [cancellingId, setCancellingId] = useState('')
+  const [submittingId, setSubmittingId] = useState('')
 
   function load() {
-    setLoading(true)
+    if (rows.length === 0) setLoading(true)
     requestsApi
       .list({ page, pageSize: 10 })
       .then(async (result) => {
@@ -217,18 +218,23 @@ export function CustomerRequestsPage() {
           {row.status === 'DRAFT' || row.status === 'ANALYZING' || row.status === 'FAILED' ? (
             <Button
               variant="secondary"
+              disabled={submittingId === row.id}
               onClick={async () => {
+                setSubmittingId(row.id)
                 try {
                   const updated = await requestsApi.submit(row.id)
+                  setRows((current) => current.map((item) => (item.id === updated.id ? updated : item)))
                   push('success', updated.status === 'DRAFT' ? 'Request submitted.' : `Request is ${updated.status.replaceAll('_', ' ')}.`)
                   load()
                 } catch (err) {
                   push('error', getApiError(err).error)
                   load()
+                } finally {
+                  setSubmittingId('')
                 }
               }}
             >
-              {row.status === 'DRAFT' ? 'Submit' : 'Continue'}
+              {submittingId === row.id ? 'Submitting…' : row.status === 'DRAFT' ? 'Submit' : 'Continue'}
             </Button>
           ) : null}
           {row.status === 'CLARIFICATION_REQUIRED' ? (
