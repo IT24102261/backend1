@@ -102,7 +102,35 @@ public class AgenticWorkflowTests
         Assert.False(planning.TryGetProperty("quantity", out var quantity) && quantity.ValueKind is JsonValueKind.Number);
         Assert.Contains(
             planning.GetProperty("clarificationQuestions").EnumerateArray().Select(x => x.GetString()),
-            question => question != null && question.Contains("number of switches", StringComparison.OrdinalIgnoreCase));
+            question => question != null && question.Contains("How many need to be changed?", StringComparison.OrdinalIgnoreCase));
+        Assert.Empty(harness.Invitations.Items);
+    }
+
+    [Fact]
+    public async Task ChangePlugWithoutCount_AsksHowManyBeforeTechniciansAreInvited()
+    {
+        var harness = Harness.Create();
+        var request = harness.SeedGoldenRequest();
+        request.Description = "i want to change plug";
+        request.CategoryId = ServiceCategorySeed.Electrician;
+
+        var started = await harness.Orchestrator.StartRequestWorkflowAsync(request.Id);
+
+        Assert.Equal("CLARIFICATION_REQUIRED", started.Status);
+        Assert.Empty(harness.Invitations.Items);
+        using var plan = JsonDocument.Parse(started.PlanJson);
+        var questions = plan.RootElement.GetProperty("planning").GetProperty("clarificationQuestions").EnumerateArray().Select(x => x.GetString());
+        Assert.Contains(questions, question => question != null && question.Contains("How many need to be changed?", StringComparison.OrdinalIgnoreCase));
+
+        harness.Clarifications.Items.Add(new RequestClarification
+        {
+            RequestId = request.Id,
+            AuthorId = request.CustomerId,
+            Message = "2"
+        });
+        var resumed = await harness.Orchestrator.ResumeAfterClarificationAsync(request.Id);
+        Assert.Equal("QUOTE_COLLECTION", resumed.Status);
+        Assert.NotEmpty(harness.Invitations.Items);
     }
 
     [Fact]

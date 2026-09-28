@@ -25,7 +25,7 @@ function requestHelpText(status: string) {
     case 'SUBMITTED':
       return 'We are reading your request to identify the right trade, such as electrician or plumber.'
     case 'CLARIFICATION_REQUIRED':
-      return 'We need a little more information from you before we can invite technicians.'
+      return 'Answer how many need to be changed. The request is submitted to technicians only after that.'
     case 'MATCHING':
       return 'We are inviting technicians who are approved for this type of work.'
     case 'COLLECTING_QUOTES':
@@ -197,7 +197,7 @@ export function CustomerRequestsPage() {
     }
     try {
       await requestsApi.addClarification(requestId, message)
-      push('success', 'Answer sent. Matching will continue.')
+      push('success', 'Answer saved. The request is now submitted to technicians.')
       setAnswers((current) => ({ ...current, [requestId]: '' }))
       load()
     } catch (err) {
@@ -393,23 +393,23 @@ export function CustomerRequestsPage() {
                 <p className="mt-2 text-sm text-[#6d6a64]">{requestHelpText(row.status)}</p>
                 {row.status === 'CLARIFICATION_REQUIRED' ? (
                   <div id={`request-answer-${row.id}`} className="mt-3 space-y-3 border border-[#e6dccb] bg-[#faf7f1] p-4">
-                    <p className="text-sm font-semibold text-slate-900">We need a little more information</p>
-                    <p className="text-sm text-slate-700">{questions[row.id] || 'Please add more detail so matching can continue.'}</p>
-                    <FormField label="Your answer">
+                    <p className="text-sm font-semibold text-slate-900">How many need to be changed?</p>
+                    <p className="text-sm text-slate-700">{questions[row.id] || 'How many need to be changed?'}</p>
+                    <FormField label="How many">
                       <TextArea
                         value={answers[row.id] ?? ''}
                         onChange={(event) => setAnswers((current) => ({ ...current, [row.id]: event.target.value }))}
-                        placeholder="Example: 2 plug switches need replacement. I can send a photo."
+                        placeholder="Example: 2"
                       />
                     </FormField>
                     <Button type="button" onClick={() => void sendClarification(row.id)}>
-                      Send answer
+                      Submit request
                     </Button>
                   </div>
                 ) : null}
-                {quotes.length === 0 ? (
+                {quotes.length === 0 && row.status !== 'CLARIFICATION_REQUIRED' ? (
                   <p className="mt-3 text-sm text-slate-500">No quotations yet for this request.</p>
-                ) : (
+                ) : quotes.length === 0 ? null : (
                   <div className="mt-3 space-y-2">
                     {quotes.map((quote) => {
                       const isSelected = quote.status === 'ACCEPTED' || selectedQuote?.id === quote.id

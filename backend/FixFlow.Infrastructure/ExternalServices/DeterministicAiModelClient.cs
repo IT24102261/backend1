@@ -79,19 +79,15 @@ public sealed class DeterministicAiModelClient(IOptions<AiOptions> options) : IA
         }
 
         var quantity = InferQuantity(text);
-        var vagueSwitch = category == "Electrician"
-            && text.Contains("switch", StringComparison.OrdinalIgnoreCase)
-            && quantity is null
-            && !text.Contains("replac", StringComparison.OrdinalIgnoreCase)
-            && !text.Contains("damaged", StringComparison.OrdinalIgnoreCase);
-        if (vagueSwitch)
+        var needsCount = NeedsChangeCount(text, category, quantity);
+        if (needsCount)
         {
-            questions.Add("Please provide the number of switches that need repair or replacement and upload a photo if possible.");
+            questions.Add("How many need to be changed?");
         }
 
         var missing = new List<string>();
         if (missingArea) missing.Add("service area");
-        if (vagueSwitch) missing.Add("switch quantity and photo");
+        if (needsCount) missing.Add("quantity to change");
         if (string.IsNullOrWhiteSpace(category)) missing.Add("service category");
 
         return JsonSerializer.Serialize(new PlanningOutput
@@ -101,7 +97,7 @@ public sealed class DeterministicAiModelClient(IOptions<AiOptions> options) : IA
             RequiredTechnician = string.IsNullOrWhiteSpace(category) ? string.Empty : category,
             Quantity = quantity,
             Confidence = category == "Electrician" ? 0.91 : 0.72,
-            ClarificationRequired = dangerous || missingArea || string.IsNullOrWhiteSpace(category) || vagueSwitch,
+            ClarificationRequired = dangerous || missingArea || string.IsNullOrWhiteSpace(category) || needsCount,
             ClarificationQuestions = questions,
             MissingInformation = missing,
             Plan =
@@ -158,7 +154,7 @@ public sealed class DeterministicAiModelClient(IOptions<AiOptions> options) : IA
     private static string InferCategory(string text)
     {
         var value = text.ToLowerInvariant();
-        if (value.Contains("switch") || value.Contains("socket") || value.Contains("outlet") || value.Contains("electric") || value.Contains("wire"))
+        if (value.Contains("switch") || value.Contains("plug") || value.Contains("socket") || value.Contains("outlet") || value.Contains("electric") || value.Contains("wire") || value.Contains("bulb"))
         {
             return "Electrician";
         }
@@ -205,6 +201,29 @@ public sealed class DeterministicAiModelClient(IOptions<AiOptions> options) : IA
         }
 
         return category == "Electrician" ? "Electrical Repair" : "General";
+    }
+
+    private static bool NeedsChangeCount(string text, string category, int? quantity)
+    {
+        if (quantity is not null || text.Any(char.IsDigit))
+        {
+            return false;
+        }
+
+        var value = text.ToLowerInvariant();
+        string[] counts = ["one", "two", "three", "four", "five", "several", "multiple"];
+        if (counts.Any(value.Contains))
+        {
+            return false;
+        }
+
+        string[] fittings = ["switch", "plug", "socket", "outlet", "bulb", "light", "fan", "breaker", "tap", "faucet"];
+        if (!fittings.Any(value.Contains))
+        {
+            return false;
+        }
+
+        return category is "Electrician" or "Electrical" or "Plumber" || string.IsNullOrWhiteSpace(category);
     }
 
     private static int? InferQuantity(string text)

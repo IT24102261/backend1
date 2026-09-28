@@ -74,54 +74,64 @@ public class RequestPlanningAgent(
             }
         }
 
-        if (IsVagueSwitch(input.Description, output.Category, output.Quantity))
+        if (NeedsChangeCount(input.Description, output.Category, output.Quantity))
         {
             output.Quantity = null;
             output.ClarificationRequired = true;
-            if (!output.ClarificationQuestions.Any(x => x.Contains("number of switches", StringComparison.OrdinalIgnoreCase)))
+            if (!output.ClarificationQuestions.Any(x => x.Contains("how many", StringComparison.OrdinalIgnoreCase)))
             {
-                output.ClarificationQuestions.Add("Please provide the number of switches that need repair or replacement and upload a photo if possible.");
+                output.ClarificationQuestions.Add("How many need to be changed?");
             }
 
-            if (!output.MissingInformation.Any(x => x.Contains("switch", StringComparison.OrdinalIgnoreCase)))
+            if (!output.MissingInformation.Any(x => x.Contains("quantity", StringComparison.OrdinalIgnoreCase)))
             {
-                output.MissingInformation.Add("switch quantity and photo");
+                output.MissingInformation.Add("quantity to change");
             }
         }
 
         return (output, used);
     }
 
-    private static bool IsVagueSwitch(string description, string category, int? quantity)
+    private static readonly string[] CountableFittings =
+    [
+        "switch", "plug", "socket", "outlet", "bulb", "light", "fan", "breaker", "tap", "faucet"
+    ];
+
+    private static bool NeedsChangeCount(string description, string category, int? quantity)
     {
-        if (!category.Equals("Electrician", StringComparison.OrdinalIgnoreCase)
-            && !category.Equals("Electrical", StringComparison.OrdinalIgnoreCase))
+        if (quantity is not null || HasExplicitCount(description))
         {
             return false;
         }
 
-        if (quantity is not null)
+        var text = description.ToLowerInvariant();
+        if (!CountableFittings.Any(text.Contains))
         {
             return false;
         }
 
-        if (description.Contains("replac", StringComparison.OrdinalIgnoreCase)
-            || description.Contains("damaged", StringComparison.OrdinalIgnoreCase)
-            || description.Contains("photo", StringComparison.OrdinalIgnoreCase)
-            || description.Any(char.IsDigit)
-            || ContainsSwitchCountWord(description))
+        var electrical = category.Equals("Electrician", StringComparison.OrdinalIgnoreCase)
+            || category.Equals("Electrical", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(category);
+        var plumbing = category.Equals("Plumber", StringComparison.OrdinalIgnoreCase);
+        if (!electrical && !plumbing)
         {
             return false;
         }
 
-        return description.Contains("switch", StringComparison.OrdinalIgnoreCase);
+        return true;
     }
 
-    private static bool ContainsSwitchCountWord(string description)
+    private static bool HasExplicitCount(string description)
     {
+        if (description.Any(char.IsDigit))
+        {
+            return true;
+        }
+
         var value = description.ToLowerInvariant();
         string[] counts = ["one", "two", "three", "four", "five", "several", "multiple"];
-        return counts.Any(value.Contains);
+        return counts.Any(count => value.Contains(count, StringComparison.Ordinal));
     }
 
     private Task<List<ServiceCategory>> LoadCatalog(CancellationToken cancellationToken) =>
