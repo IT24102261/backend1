@@ -474,24 +474,69 @@ class TechnicianApplication {
     required this.categoryId,
     required this.status,
     required this.submittedAt,
+    this.technicianId,
     this.categoryName,
     this.decisionNotes,
+    this.technicianDisplayName,
+    this.technicianEmail,
+    this.profilePhotoUrl,
+    this.evidenceCount = 0,
+    this.documents = const [],
   });
 
   final String id;
   final String categoryId;
   final String status;
   final DateTime submittedAt;
+  final String? technicianId;
   final String? categoryName;
   final String? decisionNotes;
+  final String? technicianDisplayName;
+  final String? technicianEmail;
+  final String? profilePhotoUrl;
+  final int evidenceCount;
+  final List<EvidenceDocument> documents;
 
   factory TechnicianApplication.fromJson(Map<String, dynamic> json) => TechnicianApplication(
         id: json['id']?.toString() ?? '',
+        technicianId: json['technicianId']?.toString(),
         categoryId: json['categoryId']?.toString() ?? '',
         status: json['status']?.toString() ?? '',
         submittedAt: _dt(json['submittedAt']) ?? DateTime.now(),
         categoryName: json['categoryName']?.toString(),
         decisionNotes: json['decisionNotes']?.toString(),
+        technicianDisplayName: json['technicianDisplayName']?.toString(),
+        technicianEmail: json['technicianEmail']?.toString(),
+        profilePhotoUrl: json['profilePhotoUrl']?.toString(),
+        evidenceCount: json['evidenceCount'] as int? ?? (json['documents'] is List ? (json['documents'] as List).length : 0),
+        documents: (json['documents'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(EvidenceDocument.fromJson)
+            .toList(),
+      );
+}
+
+class EvidenceDocument {
+  const EvidenceDocument({
+    required this.id,
+    required this.evidenceType,
+    required this.mimeType,
+    this.url,
+    this.reviewStatus,
+  });
+
+  final String id;
+  final String evidenceType;
+  final String mimeType;
+  final String? url;
+  final String? reviewStatus;
+
+  factory EvidenceDocument.fromJson(Map<String, dynamic> json) => EvidenceDocument(
+        id: json['id']?.toString() ?? '',
+        evidenceType: json['evidenceType']?.toString() ?? '',
+        mimeType: json['mimeType']?.toString() ?? '',
+        url: json['url']?.toString(),
+        reviewStatus: json['reviewStatus']?.toString(),
       );
 }
 

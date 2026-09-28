@@ -51,11 +51,16 @@ public class TechnicianApplicationDto
     public Guid TechnicianId { get; set; }
     public Guid CategoryId { get; set; }
     public string? CategoryName { get; set; }
+    public string? TechnicianDisplayName { get; set; }
+    public string? TechnicianEmail { get; set; }
+    public string? ProfilePhotoUrl { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTimeOffset SubmittedAt { get; set; }
     public DateTimeOffset? DecidedAt { get; set; }
     public string? DecisionNotes { get; set; }
     public int Version { get; set; }
+    public int EvidenceCount { get; set; }
+    public IReadOnlyList<DocumentDto> Documents { get; set; } = [];
 }
 
 public class ApplicationDecisionRequest
@@ -71,6 +76,8 @@ public class DocumentDto
     public string MimeType { get; set; } = string.Empty;
     public string ReviewStatus { get; set; } = string.Empty;
     public DateTimeOffset UploadedAt { get; set; }
+    public string? Url { get; set; }
+    public string? Issuer { get; set; }
 }
 
 public sealed record TechnicianPhotoFile(Stream Content, string ContentType);

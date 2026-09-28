@@ -84,6 +84,8 @@ public class TechnicianService(
         var profile = await RequireProfile(cancellationToken);
         var items = await applications.Query()
             .Include(x => x.Category)
+            .Include(x => x.Documents)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
             .Where(x => x.TechnicianId == profile.Id)
             .OrderByDescending(x => x.SubmittedAt)
             .ToListAsync(cancellationToken);
@@ -127,20 +129,43 @@ public class TechnicianService(
         };
         await documents.AddAsync(document, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return new DocumentDto
+        return MapDocument(document);
+    }
+
+    public async Task<TechnicianPhotoFile> GetDocumentFileAsync(Guid applicationId, Guid documentId, CancellationToken cancellationToken = default)
+    {
+        var application = await applications.Query()
+            .Include(x => x.Documents)
+            .Include(x => x.Technician)
+            .FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken)
+            ?? throw new NotFoundException("Application not found.");
+
+        if (!currentUser.IsAdmin)
         {
-            Id = document.Id,
-            EvidenceType = EnumMap.ToApi(document.EvidenceType),
-            StorageKey = document.StorageKey,
-            MimeType = document.MimeType,
-            ReviewStatus = EnumMap.ToApi(document.ReviewStatus),
-            UploadedAt = document.UploadedAt
-        };
+            var profile = await RequireProfile(cancellationToken);
+            if (application.TechnicianId != profile.Id)
+            {
+                throw new ForbiddenException();
+            }
+        }
+
+        var document = application.Documents.FirstOrDefault(x => x.Id == documentId)
+            ?? throw new NotFoundException("Document not found.");
+        await using var source = await files.OpenAsync(document.StorageKey, cancellationToken);
+        var copy = new MemoryStream();
+        await source.CopyToAsync(copy, cancellationToken);
+        copy.Position = 0;
+        var contentType = string.IsNullOrWhiteSpace(document.MimeType) ? "application/octet-stream" : document.MimeType;
+        return new TechnicianPhotoFile(copy, contentType);
     }
 
     public async Task<PagedResult<TechnicianApplicationDto>> AdminListAsync(PagedQuery query, CancellationToken cancellationToken = default)
     {
-        var source = applications.Query().Include(x => x.Category).AsQueryable();
+        var source = applications.Query()
+            .Include(x => x.Category)
+            .Include(x => x.Documents)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
+            .AsQueryable();
         if (!string.IsNullOrWhiteSpace(query.Status))
         {
             var status = EnumMap.Parse<ApplicationStatus>(query.Status);
@@ -282,7 +307,11 @@ public class TechnicianService(
         ?? throw new NotFoundException("Technician profile not found. Create a profile first.");
 
     private async Task<TechnicianCategoryApplication> LoadApplication(Guid id, CancellationToken cancellationToken) =>
-        await applications.Query().Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
+        await applications.Query()
+            .Include(x => x.Category)
+            .Include(x => x.Documents)
+            .Include(x => x.Technician).ThenInclude(x => x.User)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken)
         ?? throw new NotFoundException("Application not found.");
 
     private void EnsureTechnician()
@@ -340,10 +369,30 @@ public class TechnicianService(
         TechnicianId = application.TechnicianId,
         CategoryId = application.CategoryId,
         CategoryName = application.Category?.Name,
+        TechnicianDisplayName = application.Technician?.User?.DisplayName,
+        TechnicianEmail = application.Technician?.User?.Email,
+        ProfilePhotoUrl = TechnicianPhotoUrl.For(application.TechnicianId, application.Technician?.ProfilePhotoStorageKey),
         Status = EnumMap.ToApi(application.Status),
         SubmittedAt = application.SubmittedAt,
         DecidedAt = application.DecidedAt,
         DecisionNotes = application.DecisionNotes,
-        Version = application.Version
+        Version = application.Version,
+        EvidenceCount = application.Documents.Count,
+        Documents = application.Documents
+            .OrderBy(x => x.UploadedAt)
+            .Select(MapDocument)
+            .ToList()
+    };
+
+    private static DocumentDto MapDocument(TechnicianDocument document) => new()
+    {
+        Id = document.Id,
+        EvidenceType = EnumMap.ToApi(document.EvidenceType),
+        StorageKey = document.StorageKey,
+        MimeType = document.MimeType,
+        ReviewStatus = EnumMap.ToApi(document.ReviewStatus),
+        UploadedAt = document.UploadedAt,
+        Url = TechnicianDocumentUrl.For(document.ApplicationId, document.Id),
+        Issuer = document.Issuer
     };
 }

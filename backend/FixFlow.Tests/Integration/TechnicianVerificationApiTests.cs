@@ -50,6 +50,35 @@ public class TechnicianVerificationApiTests(FixFlowApiFixture fixture)
         var document = await response.Content.ReadFromJsonAsync<DocumentDto>(FixFlowApiFixture.Json);
         Assert.Equal("LICENSE", document!.EvidenceType);
         Assert.Equal("application/pdf", document.MimeType);
+        Assert.False(string.IsNullOrWhiteSpace(document.Url));
+    }
+
+    [Fact]
+    public async Task AdminGet_IncludesUploadedEvidenceAndServesFile()
+    {
+        var technician = await fixture.RegisterAsync("TECHNICIAN");
+        using var client = fixture.CreateClient(technician.AccessToken);
+        var apply = await client.PostAsJsonAsync("/api/technician-applications", new
+        {
+            categoryId = ServiceCategorySeed.Plumber
+        }, FixFlowApiFixture.Json);
+        var application = (await apply.Content.ReadFromJsonAsync<TechnicianApplicationDto>(FixFlowApiFixture.Json))!;
+        (await MarketplaceScenario.PostEvidenceAsync(client, application.Id)).EnsureSuccessStatusCode();
+
+        var admin = await fixture.LoginAdminAsync();
+        using var adminClient = fixture.CreateClient(admin.AccessToken);
+        var detail = await adminClient.GetFromJsonAsync<TechnicianApplicationDto>(
+            $"/api/admin/technician-applications/{application.Id}",
+            FixFlowApiFixture.Json);
+
+        Assert.NotNull(detail);
+        Assert.Equal(1, detail!.EvidenceCount);
+        Assert.Single(detail.Documents);
+        Assert.Equal("LICENSE", detail.Documents[0].EvidenceType);
+
+        var file = await adminClient.GetAsync(detail.Documents[0].Url);
+        file.EnsureSuccessStatusCode();
+        Assert.Equal("application/pdf", file.Content.Headers.ContentType?.MediaType);
     }
 
     [Fact]

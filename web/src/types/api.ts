@@ -160,11 +160,16 @@ export type TechnicianApplicationDto = {
   technicianId: string
   categoryId: string
   categoryName?: string | null
+  technicianDisplayName?: string | null
+  technicianEmail?: string | null
+  profilePhotoUrl?: string | null
   status: string
   submittedAt: string
   decidedAt?: string | null
   decisionNotes?: string | null
   version: number
+  evidenceCount?: number
+  documents?: DocumentDto[]
 }
 
 export type DocumentDto = {
@@ -174,6 +179,8 @@ export type DocumentDto = {
   mimeType: string
   reviewStatus: string
   uploadedAt: string
+  url?: string | null
+  issuer?: string | null
 }
 
 export type InvitationDto = {

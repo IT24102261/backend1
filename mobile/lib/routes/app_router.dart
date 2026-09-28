@@ -30,6 +30,8 @@ class AppRoutes {
   static const technicianNotifications = '/technician/notifications';
   static const adminHome = '/admin';
   static const adminTechnicians = '/admin/technicians';
+  static const adminVerifications = '/admin/verifications';
+  static const adminVerificationDetail = '/admin/verifications/detail';
 
   static const customerRoles = ['CUSTOMER'];
   static const technicianRoles = ['TECHNICIAN'];

@@ -274,6 +274,32 @@ class FixFlowApi {
         return response.data ?? {};
       });
 
+  Future<PagedResult<TechnicianApplication>> adminApplications({int page = 1, String status = ''}) => _guard(() async {
+        final response = await _client.http.get<Map<String, dynamic>>(
+          '/api/admin/technician-applications',
+          queryParameters: {'page': page, 'pageSize': 50, if (status.isNotEmpty) 'status': status},
+        );
+        return PagedResult.fromJson(response.data ?? {}, TechnicianApplication.fromJson);
+      });
+
+  Future<TechnicianApplication> adminApplication(String id) => _guard(() async {
+        final response = await _client.http.get<Map<String, dynamic>>('/api/admin/technician-applications/$id');
+        return TechnicianApplication.fromJson(response.data ?? {});
+      });
+
+  Future<TechnicianApplication> decideApplication(String id, String action, String notes) => _guard(() async {
+        final response = await _client.http.post<Map<String, dynamic>>(
+          '/api/admin/technician-applications/$id/$action',
+          data: {'notes': notes},
+        );
+        return TechnicianApplication.fromJson(response.data ?? {});
+      });
+
+  Future<List<int>> documentBytes(String path) => _guard(() async {
+        final response = await _client.http.get<List<int>>(path, options: Options(responseType: ResponseType.bytes));
+        return response.data ?? <int>[];
+      });
+
   Future<PagedResult<TechnicianReport>> technicianReports({int page = 1}) => _guard(() async {
         final response = await _client.http.get<Map<String, dynamic>>(
           '/api/admin/reports/technicians',

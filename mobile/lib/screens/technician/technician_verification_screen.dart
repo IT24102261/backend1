@@ -64,6 +64,7 @@ class _TechnicianVerificationScreenState extends ConsumerState<TechnicianVerific
     if (file == null) return;
     try {
       await ref.read(apiProvider).uploadDocument(_applicationId!, file.path, file.name, _evidenceType);
+      await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document uploaded')));
       }
@@ -104,6 +105,14 @@ class _TechnicianVerificationScreenState extends ConsumerState<TechnicianVerific
                     trailing: StatusChip(label: item.status),
                   ),
                 ),
+                ..._applications.expand((item) => item.documents.map((doc) => ListTile(
+                      title: Text(doc.evidenceType == 'IDENTITY'
+                          ? 'NIC / Identity'
+                          : doc.evidenceType == 'CERTIFICATE'
+                              ? 'Studied certificate'
+                              : doc.evidenceType),
+                      subtitle: Text(item.categoryName ?? 'Uploaded document'),
+                    ))),
                 const SizedBox(height: 16),
                 if (_applications.isNotEmpty)
                   DropdownButtonFormField<String>(
@@ -121,10 +130,10 @@ class _TechnicianVerificationScreenState extends ConsumerState<TechnicianVerific
                   value: _evidenceType,
                   decoration: const InputDecoration(labelText: 'Evidence type'),
                   items: const [
-                    DropdownMenuItem(value: 'IDENTITY', child: Text('IDENTITY')),
+                    DropdownMenuItem(value: 'IDENTITY', child: Text('NIC / Identity')),
                     DropdownMenuItem(value: 'LICENSE', child: Text('LICENSE')),
                     DropdownMenuItem(value: 'INSURANCE', child: Text('INSURANCE')),
-                    DropdownMenuItem(value: 'CERTIFICATE', child: Text('CERTIFICATE')),
+                    DropdownMenuItem(value: 'CERTIFICATE', child: Text('Studied certificate')),
                     DropdownMenuItem(value: 'WORK_SAMPLE', child: Text('WORK_SAMPLE')),
                     DropdownMenuItem(value: 'OTHER', child: Text('OTHER')),
                   ],

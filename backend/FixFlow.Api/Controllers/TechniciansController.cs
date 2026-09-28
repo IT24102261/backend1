@@ -71,6 +71,14 @@ public class TechnicianApplicationsController(
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken) =>
         Ok(await technicians.GetMineAsync(id, cancellationToken));
 
+    [HttpGet("{id:guid}/documents/{documentId:guid}")]
+    public async Task<IActionResult> Document(Guid id, Guid documentId, CancellationToken cancellationToken)
+    {
+        var file = await technicians.GetDocumentFileAsync(id, documentId, cancellationToken);
+        Response.Headers.CacheControl = "private, max-age=60";
+        return File(file.Content, file.ContentType);
+    }
+
     [HttpPost("{id:guid}/documents")]
     public async Task<IActionResult> Documents(Guid id, IFormFile file, [FromForm] string evidenceType, CancellationToken cancellationToken)
     {
