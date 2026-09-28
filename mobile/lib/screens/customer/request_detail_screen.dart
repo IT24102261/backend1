@@ -40,7 +40,7 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
   bool get _canCancel {
     final status = _request?.status;
     return status != null &&
-        !const {'COMPLETED', 'CANCELLED', 'FAILED'}.contains(status);
+        !const {'BOOKED', 'COMPLETED', 'CANCELLED', 'FAILED'}.contains(status);
   }
 
   Future<void> _load() async {

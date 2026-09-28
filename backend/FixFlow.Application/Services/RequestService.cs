@@ -19,8 +19,6 @@ public class RequestService(
     IRepository<TechnicianProfile> technicians,
     IRepository<RequestInvitation> invitations,
     IRepository<Quotation> quotations,
-    IRepository<Booking> bookings,
-    IRepository<BookingStatusHistory> bookingHistory,
     IAgentOrchestrator orchestrator,
     IMapService maps,
     IFileStorage files,
@@ -199,19 +197,7 @@ public class RequestService(
 
         if (!RequestStateMachine.CanCustomerCancel(entity.Status))
         {
-            throw new ConflictException("This request cannot be cancelled. The job is already closed.");
-        }
-
-        var activeBookings = await bookings.Query()
-            .Include(x => x.Technician)
-            .Where(x => x.RequestId == id && BookingStateMachine.Active.Contains(x.Status))
-            .ToListAsync(cancellationToken);
-        foreach (var booking in activeBookings)
-        {
-            if (!BookingStateMachine.CanTransition(booking.Status, BookingStatus.Cancelled))
-            {
-                throw new ConflictException("This job is already in progress and cannot be cancelled.");
-            }
+            throw new ConflictException("This request cannot be cancelled after it is booked.");
         }
 
         var service = entity.Category?.Name;
@@ -240,25 +226,10 @@ public class RequestService(
             }
         }
 
-        foreach (var booking in activeBookings)
-        {
-            var from = booking.Status;
-            booking.Status = BookingStatus.Cancelled;
-            await bookingHistory.AddAsync(new BookingStatusHistory
-            {
-                BookingId = booking.Id,
-                ActorId = currentUser.UserId,
-                FromStatus = from,
-                ToStatus = BookingStatus.Cancelled,
-                Note = "Cancelled by the customer"
-            }, cancellationToken);
-        }
-
         await ChangeStatusAsync(entity, ServiceRequestStatus.Cancelled, "Cancelled by the customer", cancellationToken);
 
         var recipients = openInvitations.Select(x => x.Technician.UserId)
             .Concat(openQuotes.Select(x => x.Technician.UserId))
-            .Concat(activeBookings.Select(x => x.Technician.UserId))
             .Distinct()
             .ToList();
         var message = service is null

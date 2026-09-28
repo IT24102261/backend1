@@ -247,7 +247,7 @@ export function CustomerRequestsPage() {
               ? `Quotes (${quotesByRequest[row.id].length})`
               : 'Quotes'}
           </Button>
-          {['DRAFT', 'SUBMITTED', 'ANALYZING', 'CLARIFICATION_REQUIRED', 'MATCHING', 'COLLECTING_QUOTES', 'AWAITING_CUSTOMER_APPROVAL', 'BOOKED'].includes(row.status) ? (
+          {['DRAFT', 'SUBMITTED', 'ANALYZING', 'CLARIFICATION_REQUIRED', 'MATCHING', 'COLLECTING_QUOTES', 'AWAITING_CUSTOMER_APPROVAL'].includes(row.status) ? (
             <Button variant="danger" disabled={cancellingId === row.id} onClick={() => void cancelRequest(row)}>
               {cancellingId === row.id ? 'Cancelling…' : 'Cancel request'}
             </Button>
@@ -377,7 +377,7 @@ export function CustomerRequestsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={row.status} />
-                    {['DRAFT', 'SUBMITTED', 'ANALYZING', 'CLARIFICATION_REQUIRED', 'MATCHING', 'COLLECTING_QUOTES', 'AWAITING_CUSTOMER_APPROVAL', 'BOOKED'].includes(row.status) ? (
+                    {['DRAFT', 'SUBMITTED', 'ANALYZING', 'CLARIFICATION_REQUIRED', 'MATCHING', 'COLLECTING_QUOTES', 'AWAITING_CUSTOMER_APPROVAL'].includes(row.status) ? (
                       <Button variant="danger" size="sm" disabled={cancellingId === row.id} onClick={() => void cancelRequest(row)}>
                         Cancel
                       </Button>

@@ -33,5 +33,5 @@ public static class RequestStateMachine
         status is ServiceRequestStatus.Draft or ServiceRequestStatus.ClarificationRequired;
 
     public static bool CanCustomerCancel(ServiceRequestStatus status) =>
-        status is not (ServiceRequestStatus.Completed or ServiceRequestStatus.Cancelled or ServiceRequestStatus.Failed);
+        status is not (ServiceRequestStatus.Booked or ServiceRequestStatus.Completed or ServiceRequestStatus.Cancelled or ServiceRequestStatus.Failed);
 }

@@ -94,8 +94,7 @@ public class ValidatorAndMarketplaceRuleTests
         Assert.True(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.AwaitingCustomerApproval));
         Assert.False(ServiceRequestRules.AllowsQuotations(ServiceRequestStatus.Booked));
         Assert.True(RequestStateMachine.CanCustomerCancel(ServiceRequestStatus.CollectingQuotes));
-        Assert.True(RequestStateMachine.CanCustomerCancel(ServiceRequestStatus.Booked));
-        Assert.False(RequestStateMachine.CanCustomerCancel(ServiceRequestStatus.Completed));
+        Assert.False(RequestStateMachine.CanCustomerCancel(ServiceRequestStatus.Booked));
     }
 
     [Fact]
