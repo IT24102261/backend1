@@ -11,6 +11,7 @@ export const requestsApi = {
     apiClient.put<RequestDto>(`/api/requests/${id}`, payload).then((r) => r.data),
   remove: (id: string) => apiClient.delete(`/api/requests/${id}`),
   submit: (id: string) => apiClient.post<RequestDto>(`/api/requests/${id}/submit`).then((r) => r.data),
+  cancel: (id: string) => apiClient.post<RequestDto>(`/api/requests/${id}/cancel`).then((r) => r.data),
   history: (id: string) =>
     apiClient.get<RequestHistoryDto[]>(`/api/requests/${id}/history`).then((r) => r.data),
   addClarification: (id: string, message: string) =>

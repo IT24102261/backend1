@@ -676,6 +676,11 @@ public class MarketplaceService(
 
     private async Task EnsureRequestOpenForQuotes(ServiceRequest request, CancellationToken cancellationToken)
     {
+        if (request.Status == ServiceRequestStatus.Cancelled)
+        {
+            throw new ConflictException("This request was cancelled by the customer. Quotations are no longer accepted.");
+        }
+
         if (!ServiceRequestRules.AllowsQuotations(request.Status) || await HasActiveBookingAsync(request.Id, cancellationToken))
         {
             throw new ConflictException("This job has already been accepted by another technician. Quotations are no longer accepted.");

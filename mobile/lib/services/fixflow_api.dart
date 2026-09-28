@@ -112,6 +112,11 @@ class FixFlowApi {
         return ServiceRequest.fromJson(response.data ?? {});
       });
 
+  Future<ServiceRequest> cancelRequest(String id) => _guard(() async {
+        final response = await _client.http.post<Map<String, dynamic>>('/api/requests/$id/cancel');
+        return ServiceRequest.fromJson(response.data ?? {});
+      });
+
   Future<void> addClarification(String id, String message) => _guard(() async {
         await _client.http.post('/api/requests/$id/clarification', data: {'message': message});
       });

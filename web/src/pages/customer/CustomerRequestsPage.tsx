@@ -37,6 +37,8 @@ function requestHelpText(status: string) {
       return 'A quotation was selected. Follow the job on Bookings.'
     case 'FAILED':
       return 'We could not finish matching this request. You can continue from the list above.'
+    case 'CANCELLED':
+      return 'You cancelled this request. Technicians who were invited or who sent quotations were notified.'
     default:
       return 'Follow this request as technicians reply. You always choose the quotation.'
   }
@@ -69,6 +71,7 @@ export function CustomerRequestsPage() {
   const [descError, setDescError] = useState('')
   const [areaError, setAreaError] = useState('')
   const [dateError, setDateError] = useState('')
+  const [cancellingId, setCancellingId] = useState('')
 
   function load() {
     setLoading(true)
@@ -168,6 +171,22 @@ export function CustomerRequestsPage() {
     }
   }
 
+  async function cancelRequest(row: RequestDto) {
+    if (!window.confirm('Cancel this request? Invited technicians and anyone who sent a quotation will be told you cancelled it.')) {
+      return
+    }
+    setCancellingId(row.id)
+    try {
+      await requestsApi.cancel(row.id)
+      push('success', 'Request cancelled. Technicians were notified.')
+      load()
+    } catch (err) {
+      push('error', getApiError(err).error)
+    } finally {
+      setCancellingId('')
+    }
+  }
+
   async function sendClarification(requestId: string) {
     const message = (answers[requestId] ?? '').trim()
     if (!message) {
@@ -228,6 +247,11 @@ export function CustomerRequestsPage() {
               ? `Quotes (${quotesByRequest[row.id].length})`
               : 'Quotes'}
           </Button>
+          {['DRAFT', 'SUBMITTED', 'ANALYZING', 'CLARIFICATION_REQUIRED', 'MATCHING', 'COLLECTING_QUOTES', 'AWAITING_CUSTOMER_APPROVAL'].includes(row.status) ? (
+            <Button variant="danger" disabled={cancellingId === row.id} onClick={() => void cancelRequest(row)}>
+              {cancellingId === row.id ? 'Cancelling…' : 'Cancel request'}
+            </Button>
+          ) : null}
         </div>
       ),
     },
@@ -351,7 +375,14 @@ export function CustomerRequestsPage() {
                     <p className="font-medium text-slate-900">{row.categoryName || 'Request'}</p>
                     <p className="text-sm text-slate-600">{row.description}</p>
                   </div>
-                  <StatusBadge status={row.status} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={row.status} />
+                    {['DRAFT', 'SUBMITTED', 'ANALYZING', 'CLARIFICATION_REQUIRED', 'MATCHING', 'COLLECTING_QUOTES', 'AWAITING_CUSTOMER_APPROVAL'].includes(row.status) ? (
+                      <Button variant="danger" size="sm" disabled={cancellingId === row.id} onClick={() => void cancelRequest(row)}>
+                        Cancel
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
                 <p className="mt-2 text-sm text-[#6d6a64]">{requestHelpText(row.status)}</p>
                 {row.status === 'CLARIFICATION_REQUIRED' ? (

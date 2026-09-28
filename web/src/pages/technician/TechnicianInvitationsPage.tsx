@@ -46,7 +46,7 @@ export function TechnicianInvitationsPage() {
       {loading ? <TableSkeleton /> : null}
       {error ? <ErrorState message={error} /> : null}
       {!loading && !error && rows.length === 0 ? (
-        <EmptyState title="No invitations" description="You will see jobs here after a matching request is submitted." />
+        <EmptyState title="No invitations" description="Open jobs appear here. If a customer cancels, the invitation leaves this list and you get a notification." />
       ) : null}
       <div className="grid gap-4">
         {rows.map((item) => (

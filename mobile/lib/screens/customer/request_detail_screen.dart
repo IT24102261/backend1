@@ -37,6 +37,12 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
     super.dispose();
   }
 
+  bool get _canCancel {
+    final status = _request?.status;
+    return status != null &&
+        !const {'BOOKED', 'COMPLETED', 'CANCELLED', 'FAILED'}.contains(status);
+  }
+
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -54,6 +60,34 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
       setState(() => _error = error.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _cancel() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel this request?'),
+        content: const Text(
+          'Technicians who received an invitation or sent a quotation will be told you cancelled this request.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep request')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cancel request')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(apiProvider).cancelRequest(widget.requestId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request cancelled. Technicians were notified.')),
+        );
+      }
+      await _load();
+    } catch (error) {
+      setState(() => _error = error.toString());
     }
   }
 
@@ -150,8 +184,16 @@ class _RequestDetailScreenState extends ConsumerState<RequestDetailScreen> {
                           ),
                         ],
                         const SizedBox(height: 12),
+                        if (_canCancel)
+                          OutlinedButton(
+                            onPressed: _cancel,
+                            child: const Text('Cancel request'),
+                          ),
+                        if (_canCancel) const SizedBox(height: 8),
                         FilledButton(
-                          onPressed: () => Navigator.pushNamed(context, AppRoutes.quotes, arguments: request),
+                          onPressed: request.status == 'CANCELLED'
+                              ? null
+                              : () => Navigator.pushNamed(context, AppRoutes.quotes, arguments: request),
                           child: const Text('Compare quotations'),
                         ),
                       ],

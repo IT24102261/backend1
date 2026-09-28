@@ -53,6 +53,11 @@ public class RequestsController(
     public async Task<IActionResult> Submit(Guid id, CancellationToken cancellationToken) =>
         Ok(await requests.SubmitAsync(id, cancellationToken));
 
+    [HttpPost("{id:guid}/cancel")]
+    [Authorize(Policy = "Customer")]
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken) =>
+        Ok(await requests.CancelAsync(id, cancellationToken));
+
     [HttpPost("{id:guid}/media")]
     [Authorize(Policy = "Customer")]
     public async Task<IActionResult> Media(Guid id, IFormFile file, CancellationToken cancellationToken)

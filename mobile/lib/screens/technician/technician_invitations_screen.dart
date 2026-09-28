@@ -49,7 +49,7 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
           : _error != null
               ? ErrorView(message: _error!, onRetry: _load)
               : _items.isEmpty
-                  ? const EmptyView(message: 'No invitations yet.')
+                  ? const EmptyView(message: 'No invitations yet. If a customer cancels a job, it leaves this list and shows under Notifications.')
                   : ListView(
                       padding: const EdgeInsets.all(16),
                       children: _items
