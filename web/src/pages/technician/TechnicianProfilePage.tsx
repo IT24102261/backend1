@@ -5,6 +5,7 @@ import { ErrorState } from '../../components/ui/ErrorState'
 import { FormField, TextArea, TextInput } from '../../components/ui/FormField'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { PageHeader } from '../../components/ui/PageHeader'
+import { StarRating } from '../../components/ui/StarRating'
 import { useToastStore } from '../../store/toastStore'
 import type { TechnicianProfileDto } from '../../types/api'
 import { getApiError } from '../../utils/errors'
@@ -62,9 +63,13 @@ export function TechnicianProfilePage() {
           <TextArea value={experience} onChange={(event) => setExperience(event.target.value)} />
         </FormField>
         {profile ? (
-          <p className="text-sm text-slate-500">
-            Approved categories: {profile.approvedCategories.join(', ') || 'none yet'}
-          </p>
+          <div className="space-y-2 rounded-xl bg-[#faf7f1] px-4 py-3">
+            <p className="text-sm font-medium text-[#171717]">Average review</p>
+            <StarRating value={Number(profile.averageRating)} count={profile.reviewCount} />
+            <p className="text-sm text-slate-500">
+              Approved categories: {profile.approvedCategories.join(', ') || 'none yet'}
+            </p>
+          </div>
         ) : null}
         <Button type="submit">{profile ? 'Update profile' : 'Create profile'}</Button>
       </form>

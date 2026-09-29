@@ -60,6 +60,9 @@ class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
     try {
       final updated = await ref.read(apiProvider).updateBookingStatus(widget.bookingId, 'CUSTOMER_CONFIRMED');
       setState(() => _booking = updated);
+      if (!mounted) return;
+      await Navigator.pushNamed(context, AppRoutes.review, arguments: updated);
+      await _load();
     } catch (error) {
       setState(() => _error = error.toString());
     } finally {

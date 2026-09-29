@@ -61,7 +61,7 @@ public class ReviewService(
         review.Customer = booking.Customer;
         review.Technician = booking.Technician;
         await reviews.AddAsync(review, cancellationToken);
-        await RecalculateRating(booking.TechnicianId, cancellationToken);
+        await RecalculateRating(booking.TechnicianId, cancellationToken, review);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         var bookingLabel = booking.Id.ToString("N")[..8];
         var customerName = booking.Customer.DisplayName;
@@ -160,13 +160,18 @@ public class ReviewService(
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task RecalculateRating(Guid technicianId, CancellationToken cancellationToken)
+    private async Task RecalculateRating(Guid technicianId, CancellationToken cancellationToken, Review? include = null)
     {
         var profile = await profiles.GetByIdAsync(technicianId, cancellationToken)
             ?? throw new NotFoundException("Technician not found.");
         var valid = await reviews.Query()
             .Where(x => x.TechnicianId == technicianId && x.Status == ReviewStatus.Published)
             .ToListAsync(cancellationToken);
+        if (include is { Status: ReviewStatus.Published } && valid.All(x => x.Id != include.Id))
+        {
+            valid.Add(include);
+        }
+
         profile.ReviewCount = valid.Count;
         profile.AverageRating = valid.Count == 0 ? 0 : Math.Round((decimal)valid.Average(x => x.Rating), 2);
     }

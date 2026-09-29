@@ -65,15 +65,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: _done
-            ? const Text('Thank you. Duplicate reviews for this booking are blocked by the API.')
+            ? const Text('Thank you. This review is saved on the technician profile and included in their average star rating.')
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Booking ${shortId(widget.booking.id)}'),
                   Text(
                     widget.booking.technicianDisplayName?.isNotEmpty == true
-                        ? 'Technician: ${widget.booking.technicianDisplayName}'
-                        : 'Rate the technician after you confirmed completion.',
+                        ? 'Rate ${widget.booking.technicianDisplayName}. This is saved on their profile.'
+                        : 'Rate the technician. This is saved on their profile.',
                   ),
                   Row(
                     children: List.generate(

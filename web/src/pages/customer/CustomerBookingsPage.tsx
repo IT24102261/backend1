@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { complaintsApi } from '../../api/complaints'
 import { marketplaceApi } from '../../api/marketplace'
+import { reviewsApi } from '../../api/reviews'
 import { Button } from '../../components/ui/Button'
+import { StarRating } from '../../components/ui/StarRating'
+import { FormField, TextArea } from '../../components/ui/FormField'
 import { BookingTracker } from '../../components/ui/BookingTracker'
 import { LocationMap } from '../../components/ui/LocationMap'
 import { DataTable, type Column } from '../../components/ui/DataTable'
@@ -25,14 +28,19 @@ export function CustomerBookingsPage() {
   const [history, setHistory] = useState<BookingHistoryDto[]>([])
   const [scope, setScope] = useState<ScopeChangeDto[]>([])
   const [selected, setSelected] = useState<BookingDto | null>(null)
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set())
+  const [reviewBooking, setReviewBooking] = useState<BookingDto | null>(null)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const [savingReview, setSavingReview] = useState(false)
 
   function load() {
     setLoading(true)
-    marketplaceApi
-      .bookings({ page, pageSize: 10 })
-      .then((result) => {
+    Promise.all([marketplaceApi.bookings({ page, pageSize: 10 }), reviewsApi.mine().catch(() => [])])
+      .then(([result, reviews]) => {
         setRows(result.items)
         setTotal(result.totalCount)
+        setReviewedIds(new Set(reviews.map((item) => item.bookingId)))
         setSelected((current) => result.items.find((item) => item.id === current?.id) ?? current)
       })
       .catch((err) => setError(getApiError(err).error))
@@ -118,8 +126,12 @@ export function CustomerBookingsPage() {
               variant="secondary"
               onClick={async () => {
                 try {
-                  await marketplaceApi.updateBookingStatus(row.id, 'CUSTOMER_CONFIRMED')
-                  push('success', 'Work confirmed.')
+                  const updated = await marketplaceApi.updateBookingStatus(row.id, 'CUSTOMER_CONFIRMED')
+                  push('success', 'Work confirmed. Please rate the technician.')
+                  setReviewBooking(updated)
+                  setRating(5)
+                  setComment('')
+                  setSelected(updated)
                   load()
                 } catch (err) {
                   push('error', getApiError(err).error)
@@ -127,6 +139,18 @@ export function CustomerBookingsPage() {
               }}
             >
               Confirm completion
+            </Button>
+          ) : null}
+          {(row.status === 'CUSTOMER_CONFIRMED' || row.status === 'CLOSED') && !reviewedIds.has(row.id) ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setReviewBooking(row)
+                setRating(5)
+                setComment('')
+              }}
+            >
+              Leave a review
             </Button>
           ) : null}
         </div>
@@ -138,6 +162,34 @@ export function CustomerBookingsPage() {
     <div className="space-y-5">
       <PageHeader title="Bookings" description="Confirm a selected quote to book the technician, then use Track job to follow each step until the work is finished." />
       {error ? <ErrorState message={error} /> : null}
+      {reviewBooking ? (
+        <form
+          className="space-y-4 rounded-2xl border border-[#e6dccb] bg-[#faf7f1] p-5"
+          onSubmit={async (event) => {
+            event.preventDefault()
+            setSavingReview(true)
+            try {
+              await reviewsApi.create(reviewBooking.id, rating, comment)
+              push('success', 'Review saved on the technician profile.')
+              setReviewBooking(null)
+              setComment('')
+              load()
+            } catch (err) {
+              push('error', getApiError(err).error)
+            } finally {
+              setSavingReview(false)
+            }
+          }}
+        >
+          <h2 className="font-semibold text-[#171717]">Rate {reviewBooking.technicianDisplayName || 'the technician'}</h2>
+          <p className="text-sm text-[#6d6a64]">The job is finished. Your star rating is saved on this technician’s profile and updates their average.</p>
+          <StarRating value={rating} onChange={setRating} />
+          <FormField label="Comments">
+            <TextArea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="How was the work?" />
+          </FormField>
+          <Button type="submit" disabled={savingReview}>{savingReview ? 'Saving…' : 'Submit review'}</Button>
+        </form>
+      ) : null}
       <DataTable
         columns={columns}
         rows={rows}

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FixFlow.Application.DTOs.Reviews;
+using FixFlow.Application.DTOs.Technicians;
 using FixFlow.Domain.Entities;
 using FixFlow.Domain.Enums;
 using FixFlow.Infrastructure.Data;
@@ -33,6 +34,12 @@ public class ReviewApiTests(FixFlowApiFixture fixture)
         Assert.Equal(5, review!.Rating);
         Assert.Equal("PUBLISHED", review.Status);
         Assert.Equal(scenario.TechnicianProfileId, review.TechnicianId);
+
+        var profileResponse = await customer.GetAsync($"/api/technicians/{scenario.TechnicianProfileId}/public");
+        profileResponse.EnsureSuccessStatusCode();
+        var profile = await profileResponse.Content.ReadFromJsonAsync<PublicTechnicianDto>(FixFlowApiFixture.Json);
+        Assert.True(profile!.ReviewCount >= 1);
+        Assert.True(profile.AverageRating >= 1);
     }
 
     [Fact]

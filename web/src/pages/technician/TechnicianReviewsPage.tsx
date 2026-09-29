@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react'
 import { reviewsApi } from '../../api/reviews'
+import { techniciansApi } from '../../api/technicians'
+import { StarRating } from '../../components/ui/StarRating'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { TableSkeleton } from '../../components/ui/Skeleton'
 import { useAuth } from '../../hooks/useAuth'
-import type { ReviewDto } from '../../types/api'
+import type { ReviewDto, TechnicianProfileDto } from '../../types/api'
 import { formatDate, shortId } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
 
 export function TechnicianReviewsPage() {
   const user = useAuth((state) => state.user)
   const [rows, setRows] = useState<ReviewDto[]>([])
+  const [profile, setProfile] = useState<TechnicianProfileDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -21,9 +24,11 @@ export function TechnicianReviewsPage() {
       setLoading(false)
       return
     }
-    reviewsApi
-      .forTechnician(user.technicianProfileId)
-      .then(setRows)
+    Promise.all([reviewsApi.forTechnician(user.technicianProfileId), techniciansApi.getProfile()])
+      .then(([items, technician]) => {
+        setRows(items)
+        setProfile(technician)
+      })
       .catch((err) => setError(getApiError(err).error))
       .finally(() => setLoading(false))
   }, [user?.technicianProfileId])
@@ -34,6 +39,7 @@ export function TechnicianReviewsPage() {
         title="Reviews"
         description="Customer reviews for your completed jobs. Only an admin can reply. You can read them here and in Notifications."
       />
+      {profile ? <StarRating value={Number(profile.averageRating)} count={profile.reviewCount} /> : null}
       {loading ? <TableSkeleton /> : null}
       {error ? <ErrorState message={error} /> : null}
       {!loading && !user?.technicianProfileId ? (

@@ -6,6 +6,7 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { ErrorState } from '../../components/ui/ErrorState'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { StatusBadge } from '../../components/ui/StatusBadge'
+import { StarRating } from '../../components/ui/StarRating'
 import { TableSkeleton } from '../../components/ui/Skeleton'
 import { TechnicianAvatar } from '../../components/ui/TechnicianAvatar'
 import type { PublicTechnicianDto, ReviewDto } from '../../types/api'
@@ -56,7 +57,9 @@ export function TechnicianPublicPage() {
           </div>
           <div>
             <dt className="text-slate-400">Average rating</dt>
-            <dd className="text-2xl font-semibold">{Number(profile.averageRating).toFixed(1)}</dd>
+            <dd className="mt-1">
+              <StarRating value={Number(profile.averageRating)} count={profile.reviewCount} />
+            </dd>
           </div>
           <div>
             <dt className="text-slate-400">Verified reviews / completed jobs</dt>

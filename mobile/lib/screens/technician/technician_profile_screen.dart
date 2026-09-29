@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fixflow_mobile/models/models.dart';
 import 'package:fixflow_mobile/providers/app_providers.dart';
 import 'package:fixflow_mobile/widgets/async_body.dart';
 import 'package:fixflow_mobile/widgets/fixflow_ui.dart';
@@ -15,6 +16,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
   final _bio = TextEditingController();
   final _area = TextEditingController();
   final _experience = TextEditingController();
+  TechnicianProfile? _profile;
   bool _exists = false;
   bool _loading = true;
   bool _busy = false;
@@ -40,6 +42,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
       _bio.text = profile.bio ?? '';
       _area.text = profile.serviceArea ?? '';
       _experience.text = profile.experienceSummary ?? '';
+      _profile = profile;
       _exists = true;
     } catch (_) {
       _exists = false;
@@ -54,7 +57,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
       _error = null;
     });
     try {
-      await ref.read(apiProvider).saveTechnicianProfile(
+      final saved = await ref.read(apiProvider).saveTechnicianProfile(
             {
               'bio': _bio.text.trim(),
               'serviceArea': _area.text.trim(),
@@ -62,6 +65,7 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
             },
             exists: _exists,
           );
+      _profile = saved;
       _exists = true;
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile saved')));
     } catch (error) {
@@ -81,6 +85,24 @@ class _TechnicianProfileScreenState extends ConsumerState<TechnicianProfileScree
               padding: const EdgeInsets.all(16),
               children: [
                 if (_error != null) ErrorView(message: _error!),
+                if (_profile != null) ...[
+                  Text(
+                    _profile!.reviewCount == 0
+                        ? 'No reviews yet'
+                        : '${_profile!.averageRating.toStringAsFixed(1)} average from ${_profile!.reviewCount} review${_profile!.reviewCount == 1 ? '' : 's'}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Row(
+                    children: List.generate(
+                      5,
+                      (index) => Icon(
+                        index < _profile!.averageRating.round() ? Icons.star : Icons.star_border,
+                        color: const Color(0xFFC4A574),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextField(controller: _bio, maxLines: 3, decoration: const InputDecoration(labelText: 'Bio')),
                 const SizedBox(height: 12),
                 TextField(controller: _area, decoration: const InputDecoration(labelText: 'Service area')),
