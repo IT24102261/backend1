@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { House } from 'lucide-react'
+import { Eye, EyeOff, House } from 'lucide-react'
 import { FormField, TextInput } from '../components/ui/FormField'
 import { Button } from '../components/ui/Button'
 import { ErrorState } from '../components/ui/ErrorState'
@@ -18,6 +18,7 @@ export function LoginPage() {
   const push = useToastStore((state) => state.push)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -68,12 +69,23 @@ export function LoginPage() {
             <TextInput type="email" value={email} autoComplete="email" onChange={(event) => setEmail(event.target.value)} />
           </FormField>
           <FormField label="Password" error={errors.password}>
-            <TextInput
-              type="password"
-              value={password}
-              autoComplete="current-password"
-              onChange={(event) => setPassword(event.target.value)}
-            />
+            <div className="relative">
+              <TextInput
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                autoComplete="current-password"
+                className="pr-11"
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <button
+                type="button"
+                className="absolute top-1/2 right-2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-[#6d6a64] hover:bg-[#f4efe6] hover:text-[#171717]"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((current) => !current)}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </FormField>
           <Button type="submit" disabled={busy} className="w-full">
             {busy ? 'Signing in…' : 'Sign in'}

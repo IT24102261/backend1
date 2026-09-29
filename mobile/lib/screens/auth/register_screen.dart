@@ -33,6 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   XFile? _profilePhoto;
   String? _error;
   bool _busy = false;
+  bool _showPassword = false;
 
   bool get _isElectrician {
     final selected = _categories.where((item) => item.id == _categoryId);
@@ -226,8 +227,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  obscureText: !_showPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      tooltip: _showPassword ? 'Hide password' : 'Show password',
+                      onPressed: () => setState(() => _showPassword = !_showPassword),
+                      icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                    ),
+                  ),
                   validator: (value) => value != null && value.length >= 8 ? null : 'Use at least 8 characters',
                 ),
                 const SizedBox(height: 20),
