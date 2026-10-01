@@ -402,6 +402,8 @@ class Invitation {
     this.categoryName,
     this.requestStatus,
     this.canQuote = true,
+    this.preferredStart,
+    this.preferredEnd,
   });
 
   final String id;
@@ -413,6 +415,8 @@ class Invitation {
   final String? categoryName;
   final String? requestStatus;
   final bool canQuote;
+  final DateTime? preferredStart;
+  final DateTime? preferredEnd;
 
   factory Invitation.fromJson(Map<String, dynamic> json) => Invitation(
         id: json['id']?.toString() ?? '',
@@ -424,6 +428,8 @@ class Invitation {
         categoryName: json['categoryName']?.toString(),
         requestStatus: json['requestStatus']?.toString(),
         canQuote: json['canQuote'] as bool? ?? true,
+        preferredStart: _dt(json['preferredStart']),
+        preferredEnd: _dt(json['preferredEnd']),
       );
 }
 

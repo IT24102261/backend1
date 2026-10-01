@@ -58,6 +58,10 @@ export function TechnicianInvitationsPage() {
               <div>
                 <p className="text-lg font-semibold text-slate-900">{item.categoryName || 'Service request'}</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
+                <p className="mt-2 text-sm font-medium text-[#171717]">
+                  Preferred appointment:{' '}
+                  {item.preferredStart ? formatDate(item.preferredStart) : 'Not set'}
+                </p>
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate-400">
                   <MapPin size={13} />
                   {item.serviceArea || 'approximate'} · {formatDate(item.sentAt)}

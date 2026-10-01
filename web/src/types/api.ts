@@ -192,6 +192,8 @@ export type InvitationDto = {
   serviceArea?: string | null
   categoryName?: string | null
   description: string
+  preferredStart?: string | null
+  preferredEnd?: string | null
   requestStatus?: string
   canQuote?: boolean
 }

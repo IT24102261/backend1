@@ -67,6 +67,11 @@ class _TechnicianInvitationsScreenState extends ConsumerState<TechnicianInvitati
                                       ],
                                     ),
                                     Text(item.description),
+                                    Text(
+                                      item.preferredStart == null
+                                          ? 'Preferred appointment: not set'
+                                          : 'Preferred appointment: ${formatDate(item.preferredStart)}',
+                                    ),
                                     Text('Area: ${item.serviceArea ?? 'approximate only'}'),
                                     Text(formatDate(item.sentAt)),
                                     if (!item.canQuote)

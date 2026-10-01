@@ -11,7 +11,7 @@ import { PageHeader } from '../../components/ui/PageHeader'
 import { StatusBadge } from '../../components/ui/StatusBadge'
 import { useToastStore } from '../../store/toastStore'
 import type { InvitationDto, QuoteDto } from '../../types/api'
-import { formatMoney } from '../../utils/format'
+import { formatDate, formatMoney } from '../../utils/format'
 import { getApiError } from '../../utils/errors'
 import { datetimeLocalMin, isFutureDateTime } from '../../utils/validation'
 
@@ -152,6 +152,10 @@ export function TechnicianQuotationsPage() {
               <div className="border border-[#e6dccb] bg-[#f4efe6] p-4">
                 <p className="text-sm font-semibold text-slate-900">{selected.categoryName || 'Service request'}</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{selected.description || 'No description'}</p>
+                <p className="mt-2 text-sm font-medium text-[#171717]">
+                  Preferred appointment:{' '}
+                  {selected.preferredStart ? formatDate(selected.preferredStart) : 'Not set'}
+                </p>
                 <p className="mt-2 text-xs text-slate-500">{selected.serviceArea || 'Area not set'}</p>
               </div>
             ) : (

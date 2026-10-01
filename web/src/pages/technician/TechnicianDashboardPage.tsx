@@ -106,7 +106,7 @@ export function TechnicianDashboardPage() {
                 <ActivityRow
                   key={item.id}
                   title={item.categoryName || 'Service request'}
-                  meta={`${item.serviceArea || 'Area not set'} · ${formatDate(item.sentAt)}`}
+                  meta={`${item.serviceArea || 'Area not set'} · Preferred ${item.preferredStart ? formatDate(item.preferredStart) : 'time not set'}`}
                   badge={<StatusBadge status={item.status} />}
                 />
               ))}

@@ -837,6 +837,8 @@ public class MarketplaceService(
             ServiceArea = invitation.Request.ServiceArea,
             CategoryName = invitation.Request.Category?.Name,
             Description = invitation.Request.Description,
+            PreferredStart = invitation.Request.PreferredStart,
+            PreferredEnd = invitation.Request.PreferredEnd,
             RequestStatus = EnumMap.ToApi(requestStatus),
             CanQuote = requestStillOpen
                 && invitation.Status is not InvitationStatus.Declined and not InvitationStatus.Expired

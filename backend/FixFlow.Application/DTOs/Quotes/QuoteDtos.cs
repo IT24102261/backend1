@@ -57,6 +57,8 @@ public class InvitationDto
     public string? ServiceArea { get; set; }
     public string? CategoryName { get; set; }
     public string Description { get; set; } = string.Empty;
+    public DateTimeOffset? PreferredStart { get; set; }
+    public DateTimeOffset? PreferredEnd { get; set; }
     public string RequestStatus { get; set; } = string.Empty;
     public bool CanQuote { get; set; }
 }

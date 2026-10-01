@@ -82,6 +82,14 @@ class _CreateQuoteScreenState extends ConsumerState<CreateQuoteScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            Text(widget.invitation.description),
+            const SizedBox(height: 4),
+            Text(
+              widget.invitation.preferredStart == null
+                  ? 'Preferred appointment: not set'
+                  : 'Preferred appointment: ${formatDate(widget.invitation.preferredStart)}',
+            ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _labour,
               keyboardType: TextInputType.number,
