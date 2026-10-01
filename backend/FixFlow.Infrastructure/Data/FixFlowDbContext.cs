@@ -7,6 +7,7 @@ public class FixFlowDbContext(DbContextOptions<FixFlowDbContext> options) : DbCo
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<TechnicianProfile> TechnicianProfiles => Set<TechnicianProfile>();
+    public DbSet<TechnicianProfileImage> TechnicianProfileImages => Set<TechnicianProfileImage>();
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
     public DbSet<CategoryVerificationRequirement> CategoryVerificationRequirements => Set<CategoryVerificationRequirement>();
     public DbSet<TechnicianCategoryApplication> TechnicianCategoryApplications => Set<TechnicianCategoryApplication>();

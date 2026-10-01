@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { mediaUrl } from '../../utils/media'
 
 export function TechnicianAvatar({
@@ -10,6 +11,7 @@ export function TechnicianAvatar({
   size?: number
 }) {
   const src = mediaUrl(photoUrl)
+  const [failed, setFailed] = useState(false)
   const initials = (name ?? 'T')
     .split(' ')
     .filter(Boolean)
@@ -17,7 +19,11 @@ export function TechnicianAvatar({
     .map((part) => part[0]?.toUpperCase())
     .join('')
 
-  if (src) {
+  useEffect(() => {
+    setFailed(false)
+  }, [src])
+
+  if (src && !failed) {
     return (
       <img
         src={src}
@@ -26,6 +32,7 @@ export function TechnicianAvatar({
         height={size}
         className="shrink-0 rounded-full object-cover"
         style={{ width: size, height: size }}
+        onError={() => setFailed(true)}
       />
     )
   }

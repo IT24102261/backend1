@@ -15,6 +15,7 @@ public class AuthService(
     IRepository<User> users,
     IRepository<RefreshToken> refreshTokens,
     IRepository<TechnicianProfile> technicians,
+    IRepository<TechnicianProfileImage> profileImages,
     IRepository<TechnicianCategoryApplication> applications,
     IRepository<TechnicianDocument> documents,
     IRepository<ServiceCategory> categories,
@@ -81,9 +82,15 @@ public class AuthService(
                 Address = request.Address?.Trim()
             };
             await technicians.AddAsync(profile, cancellationToken);
-            var photoKey = await StoreImageAsync($"profiles/{profile.Id}", profilePhoto, cancellationToken);
+            var (photoKey, photoBytes) = await StoreImageAsync($"profiles/{profile.Id}", profilePhoto, cancellationToken);
             profile.ProfilePhotoStorageKey = photoKey;
             profile.ProfilePhotoMimeType = profilePhoto.ContentType;
+            await profileImages.AddAsync(new TechnicianProfileImage
+            {
+                TechnicianId = profile.Id,
+                Content = photoBytes,
+                MimeType = profilePhoto.ContentType
+            }, cancellationToken);
             var application = new TechnicianCategoryApplication
             {
                 TechnicianId = profile.Id,
@@ -253,13 +260,24 @@ public class AuthService(
         };
     }
 
-    private async Task<string> StoreImageAsync(string folder, RegistrationFile file, CancellationToken cancellationToken)
+    private async Task<(string Key, byte[] Bytes)> StoreImageAsync(string folder, RegistrationFile file, CancellationToken cancellationToken)
     {
         await using var buffer = new MemoryStream();
         await file.Content.CopyToAsync(buffer, cancellationToken);
         UploadRules.EnsureImage(file.ContentType, buffer.Length);
-        buffer.Position = 0;
-        return await files.SaveAsync(folder, file.FileName, buffer, cancellationToken);
+        var bytes = buffer.ToArray();
+        var key = $"{Guid.NewGuid():N}_{Path.GetFileName(file.FileName)}";
+        try
+        {
+            buffer.Position = 0;
+            key = await files.SaveAsync(folder, file.FileName, buffer, cancellationToken);
+        }
+        catch (IOException)
+        {
+            // The database copy is the copy that survives a deploy.
+        }
+
+        return (key, bytes);
     }
 
     private async Task StoreDocumentAsync(

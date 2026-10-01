@@ -11,6 +11,7 @@ namespace FixFlow.Application.Services;
 
 public class TechnicianService(
     IRepository<TechnicianProfile> profiles,
+    IRepository<TechnicianProfileImage> profileImages,
     IRepository<TechnicianCategoryApplication> applications,
     IRepository<TechnicianDocument> documents,
     IRepository<ServiceCategory> categories,
@@ -222,6 +223,12 @@ public class TechnicianService(
 
     public async Task<TechnicianPhotoFile?> GetPhotoAsync(Guid technicianId, CancellationToken cancellationToken = default)
     {
+        var stored = await profileImages.Query().FirstOrDefaultAsync(x => x.TechnicianId == technicianId, cancellationToken);
+        if (stored is { Content.Length: > 0 })
+        {
+            return new TechnicianPhotoFile(new MemoryStream(stored.Content), stored.MimeType);
+        }
+
         var profile = await profiles.GetByIdAsync(technicianId, cancellationToken)
             ?? throw new NotFoundException("Technician not found.");
         if (string.IsNullOrWhiteSpace(profile.ProfilePhotoStorageKey))
@@ -229,8 +236,26 @@ public class TechnicianService(
             return null;
         }
 
-        var stream = await files.OpenAsync(profile.ProfilePhotoStorageKey, cancellationToken);
-        return new TechnicianPhotoFile(stream, string.IsNullOrWhiteSpace(profile.ProfilePhotoMimeType) ? "image/jpeg" : profile.ProfilePhotoMimeType);
+        try
+        {
+            await using var stream = await files.OpenAsync(profile.ProfilePhotoStorageKey, cancellationToken);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer, cancellationToken);
+            if (buffer.Length == 0)
+            {
+                return null;
+            }
+
+            var bytes = buffer.ToArray();
+            var mime = string.IsNullOrWhiteSpace(profile.ProfilePhotoMimeType) ? "image/jpeg" : profile.ProfilePhotoMimeType;
+            await SaveProfileImageAsync(profile.Id, bytes, mime, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return new TechnicianPhotoFile(new MemoryStream(bytes), mime);
+        }
+        catch (NotFoundException)
+        {
+            return null;
+        }
     }
 
     public async Task<TechnicianProfileDto> SetProfilePhotoAsync(Guid technicianId, string fileName, string contentType, Stream content, CancellationToken cancellationToken = default)
@@ -241,11 +266,22 @@ public class TechnicianService(
         await using var buffer = new MemoryStream();
         await content.CopyToAsync(buffer, cancellationToken);
         UploadRules.EnsureImage(contentType, buffer.Length);
-        buffer.Position = 0;
-        var key = await files.SaveAsync($"profiles/{profile.Id}", fileName, buffer, cancellationToken);
+        var bytes = buffer.ToArray();
+        var key = $"{Guid.NewGuid():N}_{Path.GetFileName(fileName)}";
+        try
+        {
+            buffer.Position = 0;
+            key = await files.SaveAsync($"profiles/{profile.Id}", fileName, buffer, cancellationToken);
+        }
+        catch (IOException)
+        {
+            // The database copy is the copy that survives a deploy.
+        }
+
         profile.ProfilePhotoStorageKey = key;
         profile.ProfilePhotoMimeType = contentType;
         profile.UpdatedAt = DateTimeOffset.UtcNow;
+        await SaveProfileImageAsync(profile.Id, bytes, contentType, cancellationToken);
         await audits.AddAsync(new AuditLog
         {
             ActorId = currentUser.UserId,
@@ -300,6 +336,25 @@ public class TechnicianService(
         }, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return MapSync(application);
+    }
+
+    private async Task SaveProfileImageAsync(Guid technicianId, byte[] bytes, string mimeType, CancellationToken cancellationToken)
+    {
+        var image = await profileImages.Query().FirstOrDefaultAsync(x => x.TechnicianId == technicianId, cancellationToken);
+        if (image is null)
+        {
+            await profileImages.AddAsync(new TechnicianProfileImage
+            {
+                TechnicianId = technicianId,
+                Content = bytes,
+                MimeType = mimeType
+            }, cancellationToken);
+            return;
+        }
+
+        image.Content = bytes;
+        image.MimeType = mimeType;
+        image.UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     private async Task<TechnicianProfile> RequireProfile(CancellationToken cancellationToken) =>

@@ -57,6 +57,23 @@ public class TechnicianProfileConfiguration : IEntityTypeConfiguration<Technicia
     }
 }
 
+public class TechnicianProfileImageConfiguration : IEntityTypeConfiguration<TechnicianProfileImage>
+{
+    public void Configure(EntityTypeBuilder<TechnicianProfileImage> builder)
+    {
+        builder.ToTable("technician_profile_images");
+        builder.HasKey(x => x.TechnicianId);
+        builder.Property(x => x.Content).HasColumnType("bytea").IsRequired();
+        builder.Property(x => x.MimeType).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.UpdatedAt).HasColumnType("timestamptz");
+        builder.HasOne(x => x.Technician)
+            .WithOne()
+            .HasForeignKey<TechnicianProfileImage>(x => x.TechnicianId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.UseXminConcurrency();
+    }
+}
+
 public class ServiceCategoryConfiguration : IEntityTypeConfiguration<ServiceCategory>
 {
     public void Configure(EntityTypeBuilder<ServiceCategory> builder)
