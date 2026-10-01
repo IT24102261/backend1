@@ -51,4 +51,9 @@ export const techniciansApi = {
     data.append('file', file)
     return apiClient.post<TechnicianProfileDto>(`/api/admin/technicians/${id}/photo`, data).then((r) => r.data)
   },
+  updateOwnPhoto: (file: File) => {
+    const data = new FormData()
+    data.append('file', file)
+    return apiClient.post<TechnicianProfileDto>('/api/technicians/profile/photo', data).then((r) => r.data)
+  },
 }

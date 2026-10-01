@@ -24,6 +24,20 @@ public class TechniciansController(ITechnicianService technicians, IReviewServic
     public async Task<IActionResult> UpdateProfile(TechnicianProfileRequest request, CancellationToken cancellationToken) =>
         Ok(await technicians.UpdateProfileAsync(request, cancellationToken));
 
+    [HttpPost("profile/photo")]
+    [RequestSizeLimit(6_000_000)]
+    public async Task<IActionResult> UpdateOwnPhoto([FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { error = "Upload a profile photo.", code = "VALIDATION_FAILED" });
+        }
+
+        var profile = await technicians.GetProfileAsync(cancellationToken);
+        await using var stream = file.OpenReadStream();
+        return Ok(await technicians.SetProfilePhotoAsync(profile.Id, file.FileName, file.ContentType ?? "application/octet-stream", stream, cancellationToken));
+    }
+
     [HttpGet("{technicianId:guid}/photo")]
     [AllowAnonymous]
     public async Task<IActionResult> Photo(Guid technicianId, CancellationToken cancellationToken)

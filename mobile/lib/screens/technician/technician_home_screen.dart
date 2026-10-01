@@ -78,6 +78,22 @@ class TechnicianHomeScreen extends ConsumerWidget {
                 description: 'Review invitations, send priced quotes, and keep booked jobs moving until the customer confirms.',
               ),
               const SizedBox(height: 16),
+              if (profile != null)
+                Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 28,
+                      backgroundImage: mediaUrl(profile.profilePhotoUrl) == null ? null : NetworkImage(mediaUrl(profile.profilePhotoUrl)!),
+                      child: mediaUrl(profile.profilePhotoUrl) == null
+                          ? Text(profile.displayName.trim().isEmpty ? 'T' : profile.displayName.trim()[0].toUpperCase())
+                          : null,
+                    ),
+                    title: Text(profile.displayName),
+                    subtitle: const Text('Profile photo. Open your profile to change it.'),
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.technicianProfile),
+                  ),
+                ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(child: StatTile(label: 'Approved trades', value: '$approved', hint: approved > 0 ? 'You can quote in these categories' : 'Apply from Verification', icon: Icons.verified_outlined)),

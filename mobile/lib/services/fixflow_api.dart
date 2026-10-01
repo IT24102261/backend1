@@ -313,6 +313,14 @@ class FixFlowApi {
         return PagedResult.fromJson(response.data ?? {}, TechnicianReport.fromJson);
       });
 
+  Future<TechnicianProfile> setOwnProfilePhoto(String path, String fileName) => _guard(() async {
+        final form = FormData.fromMap({
+          'file': await MultipartFile.fromFile(path, filename: fileName),
+        });
+        final response = await _client.http.post<Map<String, dynamic>>('/api/technicians/profile/photo', data: form);
+        return TechnicianProfile.fromJson(response.data ?? {});
+      });
+
   Future<void> setTechnicianPhoto(String technicianId, String path, String fileName) => _guard(() async {
         final form = FormData.fromMap({
           'file': await MultipartFile.fromFile(path, filename: fileName),

@@ -169,9 +169,23 @@ public class TechnicianVerificationApiTests(FixFlowApiFixture fixture)
         var response = await adminClient.PostAsync($"/api/admin/technicians/{profile!.Id}/photo", content);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var mine = await techClient.GetFromJsonAsync<TechnicianProfileDto>("/api/technicians/profile", FixFlowApiFixture.Json);
+        Assert.False(string.IsNullOrWhiteSpace(mine!.ProfilePhotoUrl));
+
         var anonymous = fixture.CreateClient();
         var photoResponse = await anonymous.GetAsync($"/api/technicians/{profile.Id}/photo");
         Assert.Equal(HttpStatusCode.OK, photoResponse.StatusCode);
+
+        using var ownContent = new MultipartFormDataContent();
+        var replacement = new ByteArrayContent([0x89, 0x50, 0x4E, 0x47]);
+        replacement.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        ownContent.Add(replacement, "file", "mine.png");
+        var ownResponse = await techClient.PostAsync("/api/technicians/profile/photo", ownContent);
+        Assert.Equal(HttpStatusCode.OK, ownResponse.StatusCode);
+
+        var updated = await techClient.GetFromJsonAsync<TechnicianProfileDto>("/api/technicians/profile", FixFlowApiFixture.Json);
+        Assert.False(string.IsNullOrWhiteSpace(updated!.ProfilePhotoUrl));
+        Assert.NotEqual(mine.ProfilePhotoUrl, updated.ProfilePhotoUrl);
     }
 
     [Fact]

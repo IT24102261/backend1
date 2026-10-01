@@ -439,6 +439,7 @@ class TechnicianProfile {
     this.serviceArea,
     this.experienceSummary,
     this.isSuspended = false,
+    this.profilePhotoUrl,
   });
 
   final String id;
@@ -451,6 +452,7 @@ class TechnicianProfile {
   final String? serviceArea;
   final String? experienceSummary;
   final bool isSuspended;
+  final String? profilePhotoUrl;
 
   factory TechnicianProfile.fromJson(Map<String, dynamic> json) => TechnicianProfile(
         id: json['id']?.toString() ?? '',
@@ -465,6 +467,7 @@ class TechnicianProfile {
         serviceArea: json['serviceArea']?.toString(),
         experienceSummary: json['experienceSummary']?.toString(),
         isSuspended: json['isSuspended'] as bool? ?? false,
+        profilePhotoUrl: json['profilePhotoUrl']?.toString(),
       );
 }
 
